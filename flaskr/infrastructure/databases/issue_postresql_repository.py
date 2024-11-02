@@ -123,6 +123,32 @@ class IssuePostgresqlRepository(IssueRepository):
             if session:
                 session.close()
 
+    def findById(self, issue_id = None):
+        try:
+            session = self.Session()
+
+            issue = session.query(IssueModelSqlAlchemy).join(IssueStateSqlAlchemy).filter(
+                IssueModelSqlAlchemy.id == issue_id
+            ).first()
+
+            if not issue:
+                return None
+
+            data = {
+                "id": str(issue.id),
+                "auth_user_id": str(issue.auth_user_id),
+                "status": str(issue.issue_status.name),
+                "subject": issue.subject,
+                "description": issue.description,
+                "created_at": str(issue.created_at),
+                "closed_at": str(issue.closed_at),
+                "channel_plan_id": str(issue.channel_plan_id)
+            }
+            
+            return data
+        except Exception as ex:
+            raise ex
+
     # def _from_model(self, model: Issue) -> IssueModelSqlAlchemy:
     #     return IssueModelSqlAlchemy(
     #         id=model.id,

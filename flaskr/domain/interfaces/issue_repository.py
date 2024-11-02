@@ -21,3 +21,6 @@ class IssueRepository:
     
     def find(self, user_id = None,page=None,limit=None):
         raise NotImplementedError
+    
+    def findById(self, issue_id) -> Issue:
+        raise NotImplementedError

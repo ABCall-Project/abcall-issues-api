@@ -63,6 +63,8 @@ class Issue(Resource):
             return self.getIAResponse()
         if action== 'find':
             return self.get_issues_by_user()
+        if action == 'getIssueById':
+            return self.getIssueById()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
@@ -147,6 +149,20 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying ask open ai: {ex}')
             return {'message': 'Something was wrong trying ask open ai'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    def getIssueById(self):
+        try:
+            log.info(f'Receive request to get issues by id')
+            issue_id = request.args.get('issue_id')
+            issue = self.service.find_issue_by_id(issue_id=issue_id)
+
+            return issue, HTTPStatus.OK
+        except ValueError as ex:
+            log.error(f'There was an error validate the values {ex}')
+            return {'message': 'There was an error validate the values'}, HTTPStatus.BAD_REQUEST
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get issue list: {ex}')
+            return {'message': 'Something was wrong trying to get issue list'}, HTTPStatus.INTERNAL_SERVER_ERROR    
 
 class Issues(Resource):
     def __init__(self):
