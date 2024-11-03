@@ -13,6 +13,9 @@ class IssueRepository:
     def list_issues_filtered (self, user_id, status, channel_plan_id, created_at, closed_at) -> List[Issue]:
         raise NotImplementedError
     
+    def get_users_by_customer_list (self, user_id, status, channel_plan_id, created_at, closed_at) -> List[Issue]:
+        raise NotImplementedError
+    
     def create_issue(self, issue_data: dict, new_attachment:dict) -> Issue:
         raise NotImplementedError
     
@@ -22,5 +25,5 @@ class IssueRepository:
     def find(self, user_id = None,page=None,limit=None):
         raise NotImplementedError
     
-    def list_top_issues_by_user(self,user_id) -> List[Issue]:
-        raise NotImplementedError
+    def get_issue_by_id(self, user_id, issue_id) -> Optional[Issue]:
+        raise NotImplementedError    

@@ -51,6 +51,11 @@ spec:
                 configMapKeyRef:
                   name: issues-configmap
                   key: OPENAI_PREDICTIVE_MODEL
+            - name: "CUSTOMER_API_PATH"
+              valueFrom:
+                configMapKeyRef:
+                  name: issues-configmap
+                  key: CUSTOMER_API_PATH
             - name: "DATABASE_URI"
               valueFrom:
                 secretKeyRef:

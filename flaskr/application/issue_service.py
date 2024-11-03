@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import requests
 from uuid import UUID
 import uuid
@@ -63,9 +63,26 @@ class IssueService:
             return issues
         else:
             return None
+        
+    def get_issue_by_id(self, customer_id: str, issue_id: str) -> Optional[dict]:
+        auth_service = AuthService()
+        list_user_customer = auth_service.get_users_by_customer_list(customer_id)
+
+        if not list_user_customer:
+            return None
+
+        try:
+            for item in list_user_customer:
+                issue = self.issue_repository.get_issue_by_id(user_id=item.auth_user_id, issue_id=issue_id)
+                if issue:
+                    return issue
+            return None
+
+        except Exception as ex:
+            self.log.error(f"Error retrieving issue by customer_id {customer_id} and issue_id {issue_id}: {ex}")
+            return None
 
     def create_issue(self, auth_user_id: uuid, auth_user_agent_id: uuid, subject: str, description: str, file_path: str = None) -> uuid:
-    # Ensure all necessary fields are provided
         if not auth_user_id or not subject or not description or not auth_user_agent_id:
             raise ValueError("All fields are required to create an issue.")
         new_issue = Issue(

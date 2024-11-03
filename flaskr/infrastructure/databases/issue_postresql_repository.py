@@ -123,33 +123,34 @@ class IssuePostgresqlRepository(IssueRepository):
             if session:
                 session.close()
 
-    # def _from_model(self, model: Issue) -> IssueModelSqlAlchemy:
-    #     return IssueModelSqlAlchemy(
-    #         id=model.id,
-    #         auth_user_id=model.auth_user_id,
-    #         auth_user_agent_id=model.auth_user_agent_id,
-    #         status=model.status,
-    #         subject=model.subject,
-    #         description=model.description,
-    #         created_at=model.created_at,
-    #         closed_at=model.closed_at,
-    #         channel_plan_id=model.channel_plan_id
-    #     )
-        
-    # def _to_model(self,issue:Issue)->IssueModelSqlAlchemy:
-    #     issue_entity = IssueModelSqlAlchemy(
-    #         id=issue.id,
-    #         auth_user_id=issue.auth_user_id,
-    #         auth_user_agent_id=issue.auth_user_agent_id,
-    #         status=issue.status,
-    #         subject=issue.subject,
-    #         description=issue.description,
-    #         created_at=issue.created_at,
-    #         closed_at=issue.closed_at,
-    #         channel_plan_id=issue.channel_plan_id
-    #     )
+    def get_issue_by_id(self, user_id: str, issue_id: str) -> Optional[dict]:
+        session = self.Session()
+        try:
+            issue = (
+                session.query(IssueModelSqlAlchemy, IssueStateSqlAlchemy.name.label("status_name"))
+                .join(IssueStateSqlAlchemy, IssueModelSqlAlchemy.status == IssueStateSqlAlchemy.id)
+                .filter(IssueModelSqlAlchemy.auth_user_id == user_id, IssueModelSqlAlchemy.id == issue_id)
+                .first()
+            )
 
-    #     return issue_entity    
+            if not issue:
+                return None
+
+            issue_data = {
+                "created_at": issue.IssueModelSqlAlchemy.created_at.isoformat() if issue.IssueModelSqlAlchemy.created_at else None,
+                "id": str(issue.IssueModelSqlAlchemy.id),  # Convertir UUID a cadena
+                "subject": issue.IssueModelSqlAlchemy.subject,
+                "description": issue.IssueModelSqlAlchemy.description,
+                "status": issue.status_name,
+                "closed_at": issue.IssueModelSqlAlchemy.closed_at.isoformat() if issue.IssueModelSqlAlchemy.closed_at else None
+            }
+            return issue_data
+
+        except Exception as ex:
+            log.error(f"Error retrieving issue by user_id {user_id} and issue_id {issue_id}: {ex}")
+            return None
+        finally:
+            session.close()
 
     def _from_model(self, model: IssueModelSqlAlchemy) -> Issue:
         return Issue(

@@ -65,6 +65,8 @@ class Issue(Resource):
             return self.get_issues_by_user()
         elif action=='getIAPredictiveAnswer':
             return self.get_ia_predictive_answer()
+        if action == 'get_issue_by_id':
+            return self.getIssueDetail()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
@@ -97,8 +99,6 @@ class Issue(Resource):
             query = query.filter(Issue.created_at.between(created_at, closed_at))
         elif created_at:
             query = query.filter(Issue.created_at >= created_at)
-        elif closed_at:
-            query = query.filter(Issue.created_at <= closed_at)
 
         return query.all()
 
@@ -110,22 +110,25 @@ class Issue(Resource):
             created_at = request.args.get('created_at')
             closed_at = request.args.get('closed_at')
 
-     
             log.info(f'Receive request to getIssuesDashboard {customer_id}  {status} {channel_plan_id} {created_at} {closed_at}')
 
             issue_list = self.service.list_issues_filtered(
                 customer_id=customer_id,
-                status=None,
-                channel_plan_id=None,
-                created_at=None,
-                closed_at=None
+                status=status,
+                channel_plan_id=channel_plan_id,
+                created_at=created_at,
+                closed_at=closed_at
             )
             log.info(f'issue list {issue_list}')
 
             list_issues = []
             if issue_list:
                 list_issues = [
-                    issue.to_dict() if hasattr(issue, 'to_dict') else issue for issue in issue_list
+                    {
+                        "status": issue.get("status"),
+                        "channel_plan_id": issue.get("channel_plan_id"),
+                        "created_at": issue.get("created_at")
+                    } for issue in issue_list
                 ]
 
             log.info(f'list issue {list_issues}')
@@ -135,8 +138,32 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Error trying to get issue list: {ex}')
             return {'message': 'Something went wrong trying to get the issue dashboard'}, HTTPStatus.INTERNAL_SERVER_ERROR
-          
         
+    def getIssueDetail(self):
+        try:
+            customer_id = request.args.get('customer_id')
+            issue_id = request.args.get('issue_id')
+
+            issue = self.service.get_issue_by_id(customer_id=customer_id, issue_id=issue_id)
+            log.info(f'Issue retrieved: {issue}')
+            
+            if issue:
+                issue_detail = {
+                    "created_at": issue.get("created_at"),
+                    "id": issue.get("id"),
+                    "subject": issue.get("subject"),
+                    "description": issue.get("description"),
+                    "status": issue.get("status")                  
+                }
+                return issue_detail, HTTPStatus.OK
+            else:
+                return {'message': 'Issue not found'}, HTTPStatus.NOT_FOUND
+
+        except Exception as ex:
+            log.error(f'Error trying to get issue detail: {ex}')
+            return {'message': 'Something went wrong trying to get the issue detail'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
     def getIAResponse(self):
         try:
             log.info(f'Receive request to ask to open ai')
