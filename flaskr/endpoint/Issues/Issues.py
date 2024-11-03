@@ -3,8 +3,8 @@ from flask import jsonify, request
 import os
 from config import Config
 from http import HTTPStatus
-from ...application.issue_service import IssueService
-from ...infrastructure.databases.issue_postresql_repository import IssuePostgresqlRepository
+from flaskr.application.issue_service import IssueService
+from flaskr.infrastructure.databases.issue_postresql_repository import IssuePostgresqlRepository
 from ...utils import Logger
 
 
@@ -19,7 +19,6 @@ class Issue(Resource):
 
     def post(self,action=None):
         try:
-            file_path = None
             file_path = None
             file = request.files.get('file')
 
@@ -60,10 +59,14 @@ class Issue(Resource):
             return self.getIssuesByCustomer()
         elif action == 'getIssuesDasboard':
             return self.getIssuesDasboard()
-        if action == 'getIAResponse':
+        elif action == 'getIAResponse':
             return self.getIAResponse()
+        elif action== 'find':
+            return self.get_issues_by_user()
+        elif action=='getIAPredictiveAnswer':
+            return self.get_ia_predictive_answer()
         else:
-            return {"message": "Action not found"}, 404
+            return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
     def getIssuesByCustomer(self):
         try:
@@ -136,7 +139,6 @@ class Issue(Resource):
         
     def getIAResponse(self):
         try:
-
             log.info(f'Receive request to ask to open ai')
             question = request.args.get('question')
             answer=self.service.ask_generative_ai(question)
@@ -147,4 +149,46 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying ask open ai: {ex}')
             return {'message': 'Something was wrong trying ask open ai'}, HTTPStatus.INTERNAL_SERVER_ERROR
+        
+    def get_ia_predictive_answer(self):
+        try:
+
+            log.info(f'Receive request ai predictive')
+            user_id = request.args.get('user_id')
+            answer=self.service.ask_predictive_analitic(user_id)
+            return {
+                'answer': answer
+            }, HTTPStatus.OK
+            
+        except Exception as ex:
+            log.error(f'Some error occurred trying query ai predictive: {ex}')
+            return {'message': 'Something was wrong trying query ai predictive'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+class Issues(Resource):
+    def __init__(self):
+        config = Config()
+        self.issue_repository = IssuePostgresqlRepository(config.DATABASE_URI)
+        self.service = IssueService(self.issue_repository)
+
+    def get(self, action=None, user_id=None):
+        if action== 'find':
+            return self.find(user_id)
+        else:
+            return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
+        
+
+    def find(self, user_id:str):
+        try:
+            log.info(f'Receive request to get issues by user')
+            page = int(request.args.get('page'))
+            limit = int(request.args.get('limit'))
+            issue_list = self.service.find_issues(user_id=user_id,page=page,limit=limit)
+
+            return issue_list, HTTPStatus.OK
+        except ValueError as ex:
+            log.error(f'There was an error validate the values {ex}')
+            return {'message': 'There was an error validate the values'}, HTTPStatus.BAD_REQUEST
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get issue list: {ex}')
+            return {'message': 'Something was wrong trying to get issue list'}, HTTPStatus.INTERNAL_SERVER_ERROR
         

@@ -1,0 +1,13 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    env_file:
+      - .env.db
+    container_name: issue-test-db
+    volumes:
+      - "./data/postgresql-test:/var/lib/postgresql"
+      - "./docker/postgresql:/docker-entrypoint-initdb.d"
+    ports:
+      - "6432:5432"

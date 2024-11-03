@@ -66,3 +66,42 @@ class AuthService:
         except Exception as e:
             self.logger.info(f"Error comunication with auth api: {str(e)}")
             return None    
+        
+
+    def get_customer_by_user_id(self,user_id):
+        """
+        method to query user customer 
+        Args:
+            user_id: (str)
+        Return:
+            auth_user_customer (AuthUserCustomer):  auth user object
+        """
+        auth_user_customer=None
+        try:
+            
+            self.logger.info(f'init consuming api auth {self.base_url}/users/getCompanyByUser?user_id={user_id}')
+            response = requests.get(f'{self.base_url}/users/getCompanyByUser?user_id={user_id}')
+            self.logger.info(f'quering users customer')
+            if response.status_code == 200:
+                self.logger.info(f'status code 200 quering users customer services')
+                data = response.json()
+                if data:
+                    self.logger.info(f'there are auth response ')
+                    auth_user_customer= AuthUserCustomer(data.get('id'),
+                            data.get('auth_user_id'),
+                            data.get('customer_id')                    
+                    )
+ 
+                    self.logger.info(f'deserializing user customer')
+                    return auth_user_customer
+                    
+                else:
+                    self.logger.info(f'there arent users customer')
+                    return None
+            else:
+                self.logger.info(f"error consuming user users auth api: {response.status_code}")
+                return None
+            
+        except Exception as e:
+            self.logger.info(f"Error comunication with auth api: {str(e)}")
+            return None  
