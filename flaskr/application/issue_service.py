@@ -12,7 +12,9 @@ from .auth_service import AuthService
 from .openAiService import OpenAIService
 from .customer_service import CustomerService
 from ..utils import Logger
+from datetime import datetime, timezone
 log = Logger()
+
 class Status(TypedDict):
     id: UUID
     name: str
@@ -88,7 +90,7 @@ class IssueService:
             status=IssueStatus.NEW["id"],
             subject=subject,
             description=description,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc), 
             closed_at=None,
             channel_plan_id=None
         )

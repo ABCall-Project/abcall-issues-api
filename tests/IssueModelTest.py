@@ -2,6 +2,8 @@ import unittest
 from uuid import uuid4
 from datetime import datetime
 from flaskr.domain.models import Issue
+from datetime import datetime, timezone
+
 
 class TestIssueModel(unittest.TestCase):
 
@@ -14,7 +16,7 @@ class TestIssueModel(unittest.TestCase):
             status=uuid4(),
             subject="Test Issue",
             description="This is a test issue description",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             closed_at=None,
             channel_plan_id=uuid4()
         )
