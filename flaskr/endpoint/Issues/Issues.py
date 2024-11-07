@@ -141,10 +141,9 @@ class Issue(Resource):
         
     def getIssueDetail(self):
         try:
-            customer_id = request.args.get('customer_id')
             issue_id = request.args.get('issue_id')
 
-            issue = self.service.get_issue_by_id(customer_id=customer_id, issue_id=issue_id)
+            issue = self.service.get_issue_by_id(issue_id=issue_id)
             log.info(f'Issue retrieved: {issue}')
             
             if issue:
