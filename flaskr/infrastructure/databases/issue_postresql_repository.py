@@ -1,7 +1,7 @@
 from math import ceil
 from flask import jsonify
 import json
-from sqlalchemy import create_engine,extract, func
+from sqlalchemy import create_engine,extract, func, desc
 from sqlalchemy.orm import sessionmaker
 from typing import List, Optional
 from ...utils import Logger
@@ -95,7 +95,7 @@ class IssuePostgresqlRepository(IssueRepository):
             total_pages = ceil(total_items / limit)
             has_next = page < total_pages
 
-            issues = session.query(IssueModelSqlAlchemy).join(IssueStateSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).order_by(IssueModelSqlAlchemy.created_at).offset((page - 1) * limit).limit(limit).all()
+            issues = session.query(IssueModelSqlAlchemy).join(IssueStateSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).order_by(desc(IssueModelSqlAlchemy.created_at)).offset((page - 1) * limit).limit(limit).all()
 
             data = [{
                 "id": str(issue.id),
