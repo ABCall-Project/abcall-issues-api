@@ -65,8 +65,6 @@ class IssueService:
             return None
         
     def get_issue_by_id(self, issue_id: str) -> Optional[dict]:
-        auth_service = AuthService()
-
         try:
             issue = self.issue_repository.get_issue_by_id(issue_id=issue_id)
             if issue:

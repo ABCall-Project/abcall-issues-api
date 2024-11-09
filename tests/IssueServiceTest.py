@@ -110,7 +110,6 @@ class TestIssueService(unittest.TestCase):
             description=issue_mock.description
         )
 
-
         self.assertEqual(issue.id, issue_mock.id)
 
     @patch('flaskr.application.issue_service.IssueStatus')
@@ -161,10 +160,3 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.limit, 10)
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
-
-        
-
-
-
-
-
