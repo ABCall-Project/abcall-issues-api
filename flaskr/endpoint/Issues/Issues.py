@@ -14,7 +14,7 @@ class Issue(Resource):
 
     def __init__(self):
         config = Config()
-        self.issue_repository = IssuePostgresqlRepository(config.DATABASE_URI)
+        self.issue_repository = IssuePostgresqlRepository()
         self.service = IssueService(self.issue_repository)
 
     def post(self,action=None):
@@ -193,7 +193,7 @@ class Issue(Resource):
 class Issues(Resource):
     def __init__(self):
         config = Config()
-        self.issue_repository = IssuePostgresqlRepository(config.DATABASE_URI)
+        self.issue_repository = IssuePostgresqlRepository()
         self.service = IssueService(self.issue_repository)
 
     def get(self, action=None, user_id=None):

@@ -10,147 +10,152 @@ from ...domain.interfaces import IssueRepository
 from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy
 log = Logger()
 from ...domain.constants import ISSUE_STATUS_SOLVED
+from .postgres.db import Session, engine
 
 class IssuePostgresqlRepository(IssueRepository):
-    def __init__(self, connection_string: str):
-        self.engine = create_engine(connection_string)
-        self.Session = sessionmaker(bind=self.engine)
+    def __init__(self):
+        self.engine = engine
+        self.session = Session
         self._create_tables()
 
     def _create_tables(self):
         Base.metadata.create_all(self.engine)
 
     def list_issues_period (self,user_id,year, month) -> List[Issue]:
-        session = self.Session()
-        try:
-            issues=session.query(IssueModelSqlAlchemy).filter(
-                extract('year', IssueModelSqlAlchemy.created_at) == year,
-                extract('month', IssueModelSqlAlchemy.created_at) == month,
-                IssueModelSqlAlchemy.status == ISSUE_STATUS_SOLVED,
-                IssueModelSqlAlchemy.auth_user_id==user_id).all()
-            
-            return [self._from_model(issue_model) for issue_model in issues]
-        finally:
-            session.close()
+        with self.session() as session:
+            try:
+                issues=session.query(IssueModelSqlAlchemy).filter(
+                    extract('year', IssueModelSqlAlchemy.created_at) == year,
+                    extract('month', IssueModelSqlAlchemy.created_at) == month,
+                    IssueModelSqlAlchemy.status == ISSUE_STATUS_SOLVED,
+                    IssueModelSqlAlchemy.auth_user_id==user_id).all()
+                
+                return [self._from_model(issue_model) for issue_model in issues]
+            finally:
+                session.close()
 
     def list_issues_filtered(self, user_id, status=None, channel_plan_id=None, created_at=None, closed_at=None):
-        session = self.Session()
-        try:            
-            query = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id)
-        
-            if status:
-                query = query.filter(IssueModelSqlAlchemy.status == status)
-            if channel_plan_id:
-                query = query.filter(IssueModelSqlAlchemy.channel_plan_id == channel_plan_id)
-            if created_at:
-                query = query.filter(IssueModelSqlAlchemy.created_at >= created_at)
-            if closed_at:
-                query = query.filter(IssueModelSqlAlchemy.created_at <= closed_at)
+        with self.session() as session:
+            try:            
+                query = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id)
+            
+                if status:
+                    query = query.filter(IssueModelSqlAlchemy.issue_status.has(name=status))
+                if channel_plan_id:
+                    query = query.filter(IssueModelSqlAlchemy.channel_plan_id == channel_plan_id)
+                if created_at:
+                    query = query.filter(IssueModelSqlAlchemy.created_at >= created_at)
+                if closed_at:
+                    query = query.filter(IssueModelSqlAlchemy.closed_at <= closed_at)
 
-            issues_sqlalchemy = query.all()
+                issues_sqlalchemy = query.all()
 
-            issues = [
-                Issue(
-                    id=issue_model.id,
-                    auth_user_id=issue_model.auth_user_id,
-                    auth_user_agent_id=issue_model.auth_user_agent_id,
-                    status=issue_model.status,
-                    subject=issue_model.subject,
-                    description=issue_model.description,
-                    created_at=issue_model.created_at,
-                    closed_at=issue_model.closed_at,
-                    channel_plan_id=issue_model.channel_plan_id
-                ).to_dict() for issue_model in issues_sqlalchemy
-            ]
+                issues = [
+                    Issue(
+                        id=issue_model.id,
+                        auth_user_id=issue_model.auth_user_id,
+                        auth_user_agent_id=issue_model.auth_user_agent_id,
+                        status=issue_model.status,
+                        subject=issue_model.subject,
+                        description=issue_model.description,
+                        created_at=issue_model.created_at,
+                        closed_at=issue_model.closed_at,
+                        channel_plan_id=issue_model.channel_plan_id
+                    ).to_dict() for issue_model in issues_sqlalchemy
+                ]
 
-            return issues
-
-        finally:
-            session.close()
+                return issues
+            except Exception as ex:
+                log.error(f'Error retrieving issues by user_id {user_id}: {ex}')
+                raise ex
+            finally:
+                session.close()         
 
     def create_issue(self, issue:Issue, attachment: IssueAttachment = None):
-        try:
-            session = self.Session()
-            issue_model = self._to_model(issue)
-            session.add(issue_model)
-            session.commit()  
+        with self.session() as session:
+            try:
+                issue_model = self._to_model(issue)
+                session.add(issue_model)
+                session.commit()
+                session.refresh(issue_model)
 
-            if attachment:
-                attachment_model = self._to_model_attachment(attachment)
-                session.add(attachment_model)
-            session.commit()
+                if attachment:
+                    attachment_model = self._to_model_attachment(attachment)
+                    session.add(attachment_model)
+                session.commit()
+                session.refresh(attachment_model)
 
-        except Exception as e:
-            if session:
-                session.rollback()
-            raise e
-        finally:
-            if session:
-                session.close()
+            except Exception as e:
+                if session:
+                    session.rollback()
+                raise e
+            finally:
+                if session:
+                    session.close()
     
     def find(self, user_id = None,page=None,limit=None):
-        try:
-            session = self.Session()
-            total_items = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).count()
-            total_pages = ceil(total_items / limit)
-            has_next = page < total_pages
+        with self.session() as session:
+            try:
+                total_items = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).count()
+                total_pages = ceil(total_items / limit)
+                has_next = page < total_pages
 
-            issues = session.query(IssueModelSqlAlchemy).join(IssueStateSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).order_by(desc(IssueModelSqlAlchemy.created_at)).offset((page - 1) * limit).limit(limit).all()
+                issues = session.query(IssueModelSqlAlchemy).join(IssueStateSqlAlchemy).filter(IssueModelSqlAlchemy.auth_user_id == user_id).order_by(desc(IssueModelSqlAlchemy.created_at)).offset((page - 1) * limit).limit(limit).all()
 
-            data = [{
-                "id": str(issue.id),
-                "auth_user_id": str(issue.auth_user_id),
-                "status": str(issue.issue_status.name),
-                "subject": issue.subject,
-                "description": issue.description,
-                "created_at": str(issue.created_at),
-                "closed_at": str(issue.closed_at),
-                "channel_plan_id": str(issue.channel_plan_id)
-                } for issue in issues]
-            
-            return {
-                "page": page,
-                "limit": limit,
-                "total_pages": total_pages,
-                "has_next": has_next,
-                "data": data
-            }
-        except Exception as ex:
-            if session:
-                session.rollback()
-            raise ex
-        finally:
-            if session:
-                session.close()
+                data = [{
+                    "id": str(issue.id),
+                    "auth_user_id": str(issue.auth_user_id),
+                    "status": str(issue.issue_status.name),
+                    "subject": issue.subject,
+                    "description": issue.description,
+                    "created_at": str(issue.created_at),
+                    "closed_at": str(issue.closed_at),
+                    "channel_plan_id": str(issue.channel_plan_id)
+                    } for issue in issues]
+                
+                return {
+                    "page": page,
+                    "limit": limit,
+                    "total_pages": total_pages,
+                    "has_next": has_next,
+                    "data": data
+                }
+            except Exception as ex:
+                if session:
+                    session.rollback()
+                raise ex
+            finally:
+                if session:
+                    session.close()
 
     def get_issue_by_id(self, issue_id: str) -> Optional[dict]:
-        session = self.Session()
-        try:
-            issue = (
-                session.query(IssueModelSqlAlchemy, IssueStateSqlAlchemy.name.label("status_name"))
-                .join(IssueStateSqlAlchemy, IssueModelSqlAlchemy.status == IssueStateSqlAlchemy.id)
-                .filter(IssueModelSqlAlchemy.id == issue_id)
-                .first()
-            )
+        with self.session() as session:
+            try:
+                issue = (
+                    session.query(IssueModelSqlAlchemy, IssueStateSqlAlchemy.name.label("status_name"))
+                    .join(IssueStateSqlAlchemy, IssueModelSqlAlchemy.status == IssueStateSqlAlchemy.id)
+                    .filter(IssueModelSqlAlchemy.id == issue_id)
+                    .first()
+                )
 
-            if not issue:
+                if not issue:
+                    return issue
+
+                issue_data = {
+                    "created_at": issue.IssueModelSqlAlchemy.created_at.isoformat() if issue.IssueModelSqlAlchemy.created_at else None,
+                    "id": str(issue.IssueModelSqlAlchemy.id),  # Convertir UUID a cadena
+                    "subject": issue.IssueModelSqlAlchemy.subject,
+                    "description": issue.IssueModelSqlAlchemy.description,
+                    "status": issue.status_name,
+                    "closed_at": issue.IssueModelSqlAlchemy.closed_at.isoformat() if issue.IssueModelSqlAlchemy.closed_at else None
+                }
+                return issue_data
+
+            except Exception as ex:
+                log.error(f"Error retrieving issue by issue_id {issue_id}: {ex}")
                 return None
-
-            issue_data = {
-                "created_at": issue.IssueModelSqlAlchemy.created_at.isoformat() if issue.IssueModelSqlAlchemy.created_at else None,
-                "id": str(issue.IssueModelSqlAlchemy.id),  # Convertir UUID a cadena
-                "subject": issue.IssueModelSqlAlchemy.subject,
-                "description": issue.IssueModelSqlAlchemy.description,
-                "status": issue.status_name,
-                "closed_at": issue.IssueModelSqlAlchemy.closed_at.isoformat() if issue.IssueModelSqlAlchemy.closed_at else None
-            }
-            return issue_data
-
-        except Exception as ex:
-            log.error(f"Error retrieving issue by issue_id {issue_id}: {ex}")
-            return None
-        finally:
-            session.close()
+            finally:
+                session.close()         
 
     def _from_model(self, model: IssueModelSqlAlchemy) -> Issue:
         return Issue(
@@ -188,29 +193,20 @@ class IssuePostgresqlRepository(IssueRepository):
     
 
     def list_top_issues_by_user(self,user_id) -> List[Issue]:
-        session = self.Session()
-        try:
-            # issues= (
-            #     session.query(IssueModelSqlAlchemy.description)
-            #     .filter(IssueModelSqlAlchemy.auth_user_id == user_id)
-            #     .distinct(IssueModelSqlAlchemy.description)
-            #     .order_by(IssueModelSqlAlchemy.created_at.desc())
-            #     .limit(10)
-            #     .all()
-            # )
-
-            subquery = (
-                session.query(
-                    IssueModelSqlAlchemy.description,
-                    IssueModelSqlAlchemy.created_at
+        with self.session() as session:
+            try:
+                subquery = (
+                    session.query(
+                        IssueModelSqlAlchemy.description,
+                        IssueModelSqlAlchemy.created_at
+                    )
+                    .filter(IssueModelSqlAlchemy.auth_user_id == user_id)
+                    .order_by(IssueModelSqlAlchemy.created_at.desc())
+                    .limit(10)
+                    .subquery()
                 )
-                .filter(IssueModelSqlAlchemy.auth_user_id == user_id)
-                .order_by(IssueModelSqlAlchemy.created_at.desc())
-                .limit(10)
-                .subquery()
-            )
 
-            issues = session.query(func.distinct(subquery.c.description)).all()
-            return issues
-        finally:
-            session.close()
+                issues = session.query(func.distinct(subquery.c.description)).all()
+                return issues
+            finally:
+                session.close()

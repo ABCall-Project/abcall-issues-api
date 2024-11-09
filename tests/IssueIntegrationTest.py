@@ -1,10 +1,14 @@
 import unittest
 from unittest.mock import patch
 from http import HTTPStatus
+from sqlalchemy import desc
 from io import BytesIO
 from faker import Faker
 from flaskr.app import app
 from builder import FindIssueBuilder, IssueBuilder
+from flaskr.infrastructure.databases.postgres.db import Session
+from flaskr.infrastructure.databases.model_sqlalchemy import IssueModelSqlAlchemy
+
 
 fake = Faker()
 class IssueIntegrationTest(unittest.TestCase):
@@ -87,6 +91,41 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json["total_pages"], expected_response["total_pages"])
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
         self.assertEqual(response.json["data"][0]["auth_user_id"], expected_response["data"][0].auth_user_id)
+
+    def test_should_get_issue_by_id(self):
+        user_id = fake.uuid4()
+        data = {
+            'auth_user_id': user_id,
+            'auth_user_agent_id': fake.uuid4(),
+            'subject': fake.word(),
+            'description': fake.sentence()
+        }
+        expected_issue = IssueBuilder() \
+                          .with_auth_user_id(data['auth_user_id']) \
+                          .with_auth_user_agent_id(data['auth_user_agent_id']) \
+                          .with_subject(data["subject"]) \
+                          .with_description(data["description"]) \
+                        .build()
+
+        self.client.post('/issue/post', content_type='multipart/form-data', data=data)
+        session = Session()
+        issue = session.query(IssueModelSqlAlchemy).order_by(desc(IssueModelSqlAlchemy.created_at)).first()
+
+        issue_dict = {
+            "id": str(issue.id),
+            "auth_user_id": str(issue.auth_user_id),
+            "status": str(issue.issue_status.name),
+            "subject": issue.subject,
+            "description": issue.description,
+            "created_at": str(issue.created_at),
+            "closed_at": str(issue.closed_at),
+            "channel_plan_id": str(issue.channel_plan_id)
+        }
+        response = self.client.get(f'/issue/get_issue_by_id?issue_id={issue.id}')
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.json['id'], issue_dict['id'])
+        self.assertEqual(response.json['description'], issue_dict['description'])
 
 
         
