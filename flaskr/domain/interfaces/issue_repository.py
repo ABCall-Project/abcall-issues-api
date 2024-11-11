@@ -26,4 +26,7 @@ class IssueRepository:
         raise NotImplementedError
     
     def get_issue_by_id(self, issue_id) -> Optional[Issue]:
-        raise NotImplementedError    
+        raise NotImplementedError   
+
+    def all(self) -> Optional[Issue]:
+        raise NotImplementedError  

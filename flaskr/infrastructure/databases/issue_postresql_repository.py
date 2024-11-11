@@ -8,10 +8,13 @@ from ...utils import Logger
 from ...domain.models import Issue, IssueAttachment
 from ...domain.interfaces import IssueRepository
 from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy
-log = Logger()
 from ...domain.constants import ISSUE_STATUS_SOLVED
 from .postgres.db import Session, engine
 
+log = Logger()
+
+SOLVED = '791353c6-3899-4d35-bcd9-af8775e240bf'
+CREATED = '574408a7-3aa0-4eab-b279-62ed10e6107e'
 class IssuePostgresqlRepository(IssueRepository):
     def __init__(self):
         self.engine = engine
@@ -151,11 +154,43 @@ class IssuePostgresqlRepository(IssueRepository):
                 }
                 return issue_data
 
+
+
             except Exception as ex:
                 log.error(f"Error retrieving issue by issue_id {issue_id}: {ex}")
                 return None
             finally:
-                session.close()         
+                session.close()   
+
+    def all(self):
+            with self.session() as session:
+                try:
+                    issues = (session.query(IssueModelSqlAlchemy)
+                            .join(IssueStateSqlAlchemy)
+                            .filter(IssueModelSqlAlchemy.status ==CREATED)
+                            .order_by(desc(IssueModelSqlAlchemy.created_at))
+                            .all()
+                    )
+
+                    data = [{
+                        "id": str(issue.id),
+                        "auth_user_id": str(issue.auth_user_id),
+                        "status": str(issue.issue_status.name),
+                        "subject": issue.subject,
+                        "description": issue.description,
+                        "created_at": str(issue.created_at),
+                        "closed_at": str(issue.closed_at),
+                        "channel_plan_id": str(issue.channel_plan_id)
+                        } for issue in issues]
+                    
+                    return data
+                except Exception as ex:
+                    if session:
+                        session.rollback()
+                    raise ex
+                finally:
+                    if session:
+                        session.close()      
 
     def _from_model(self, model: IssueModelSqlAlchemy) -> Issue:
         return Issue(

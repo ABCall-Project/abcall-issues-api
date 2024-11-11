@@ -67,6 +67,8 @@ class Issue(Resource):
             return self.get_ia_predictive_answer()
         if action == 'get_issue_by_id':
             return self.getIssueDetail()
+        if action == 'getAllIssues':
+            return self.getAllIssues()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
@@ -189,6 +191,17 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying query ai predictive: {ex}')
             return {'message': 'Something was wrong trying query ai predictive'}, HTTPStatus.INTERNAL_SERVER_ERROR
+    
+    def getAllIssues(self):
+        try:
+            log.info(f'Receive request to getAllIssues')
+            list_issues=[]
+            list_issues = self.service.get_all_issues()
+            
+            return list_issues, HTTPStatus.OK
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get all issues list: {ex}')
+            return {'message': 'Something was wrong trying to get all issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
 
 class Issues(Resource):
     def __init__(self):
