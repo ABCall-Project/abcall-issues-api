@@ -8,13 +8,12 @@ from ...utils import Logger
 from ...domain.models import Issue, IssueAttachment
 from ...domain.interfaces import IssueRepository
 from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy
-from ...domain.constants import ISSUE_STATUS_SOLVED
+from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN
 from .postgres.db import Session, engine
 
 log = Logger()
 
-SOLVED = '791353c6-3899-4d35-bcd9-af8775e240bf'
-CREATED = '574408a7-3aa0-4eab-b279-62ed10e6107e'
+
 class IssuePostgresqlRepository(IssueRepository):
     def __init__(self):
         self.engine = engine
@@ -167,7 +166,7 @@ class IssuePostgresqlRepository(IssueRepository):
                 try:
                     issues = (session.query(IssueModelSqlAlchemy)
                             .join(IssueStateSqlAlchemy)
-                            .filter(IssueModelSqlAlchemy.status ==CREATED)
+                            .filter(IssueModelSqlAlchemy.status ==ISSUE_STATUS_OPEN)
                             .order_by(desc(IssueModelSqlAlchemy.created_at))
                             .all()
                     )
