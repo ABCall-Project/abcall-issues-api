@@ -65,9 +65,9 @@ class Issue(Resource):
             return self.get_issues_by_user()
         elif action=='getIAPredictiveAnswer':
             return self.get_ia_predictive_answer()
-        if action == 'get_issue_by_id':
+        elif action == 'get_issue_by_id':
             return self.getIssueDetail()
-        if action == 'getAllIssues':
+        elif action == 'getAllIssues':
             return self.getAllIssues()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
