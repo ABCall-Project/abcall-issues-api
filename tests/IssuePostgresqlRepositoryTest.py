@@ -59,3 +59,23 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         result = self.repo.list_issues_filtered(user_id=mock_issue.auth_user_id, status='OPEN')
 
         self.assertGreaterEqual(len(result), 0)
+
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
+    def test_issue_assign(self, mock_sessionmaker, mock_create_engine):
+        # Configura el mock de la sesión
+        mock_session = MagicMock()
+        mock_sessionmaker.return_value = mock_session
+        mock_session_instance = mock_session.return_value
+        mock_issue = MagicMock()
+        mock_session_instance.query.return_value.filter.return_value.one_or_none.return_value = mock_issue
+
+        issue_id = uuid4()
+        auth_user_agent_id = uuid4()
+        
+        self.repo = IssuePostgresqlRepository()  
+        result = self.repo.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
+        mock_issue.auth_user_agent_id = auth_user_agent_id
+        mock_session_instance.commit.assert_called_once()  
+        
+        self.assertIsNone(result)
