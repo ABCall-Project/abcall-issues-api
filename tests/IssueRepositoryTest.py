@@ -30,3 +30,7 @@ class IssueRepositoryUseCase(unittest.TestCase):
     def test_should_return_error_when_find_method_is_not_implement(self):
         with self.assertRaises(NotImplementedError):
             self.repo.find()
+    
+    def test_should_return_error_when_find_method_is_not_implement(self):
+        with self.assertRaises(NotImplementedError):
+            self.repo.assign_issue()

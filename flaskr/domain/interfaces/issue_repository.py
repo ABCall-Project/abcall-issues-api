@@ -30,3 +30,6 @@ class IssueRepository:
 
     def all(self) -> Optional[Issue]:
         raise NotImplementedError  
+    
+    def assign_issue(self) -> dict:
+        raise NotImplementedError  

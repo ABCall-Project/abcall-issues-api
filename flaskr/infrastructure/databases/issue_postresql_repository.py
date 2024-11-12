@@ -244,3 +244,17 @@ class IssuePostgresqlRepository(IssueRepository):
                 return issues
             finally:
                 session.close()
+    
+    def assign_issue(self, issue_id, auth_user_agent_id) -> dict:
+            with self.session() as session:
+                try:
+                    
+                    issue = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.id == issue_id).one_or_none()
+                    log.info(f"The issue: ${issue}")
+                    if not issue:
+                        raise ValueError("Issue not found")
+                    issue.auth_user_agent_id = auth_user_agent_id
+                    session.commit()
+                except Exception as ex:
+                    session.rollback()
+                    raise ex 

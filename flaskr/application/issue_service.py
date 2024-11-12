@@ -181,3 +181,16 @@ class IssueService:
         self.log.info(f'get_all_issues')
         issues = self.issue_repository.all()
         return issues
+
+    def assign_issue(self, issue_id: UUID= None, auth_user_agent_id: UUID = None):
+            self.log.info(f'Service assign_issue')
+            if not issue_id or not auth_user_agent_id:
+                raise ValueError("Issue ID and Auth User Agent ID are required")
+
+            issue_response = self.issue_repository.assign_issue(
+                        issue_id=issue_id,
+                        auth_user_agent_id=auth_user_agent_id
+                    )
+            
+            return issue_response
+    
