@@ -73,7 +73,6 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         issue_id = uuid4()
         auth_user_agent_id = uuid4()
         
-        self.repo = IssuePostgresqlRepository()  
         result = self.repo.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
         mock_issue.auth_user_agent_id = auth_user_agent_id
         mock_session_instance.commit.assert_called_once()  
