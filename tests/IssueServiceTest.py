@@ -160,3 +160,16 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.limit, 10)
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
+
+    def test_should_assign_issue(self):
+        issues_mocked = IssueBuilder().build()
+        issue_id = issues_mocked.id
+        auth_user_agent_id = issues_mocked.auth_user_agent_id
+
+        issue_service = IssueService(issue_repository=IssueMockRepository(issues_mocked))
+        issue_service.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
+        updated_issue = issue_service.issue_repository.findById(issue_id)
+
+        self.assertIsNotNone(updated_issue)
+        self.assertEqual(updated_issue.auth_user_agent_id, auth_user_agent_id)
+
