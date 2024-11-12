@@ -41,4 +41,4 @@ class IssueRepositoryUseCase(unittest.TestCase):
     
     def test_should_return_error_when_get_issue_by_id_method_is_not_implement(self):
         with self.assertRaises(NotImplementedError):
-            self.repo.get_issue_by_id()
+            self.repo.get_issue_by_id(issue_id="")
