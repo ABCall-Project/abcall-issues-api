@@ -176,3 +176,8 @@ class IssueService:
                 return 'No se puede dar sugerencias en este momento'
         else:
             return 'No se pudo identificar al cliente para dar sugerencias'
+
+    def get_all_issues(self):
+        self.log.info(f'get_all_issues')
+        issues = self.issue_repository.all()
+        return issues
