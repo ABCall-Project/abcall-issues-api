@@ -31,6 +31,14 @@ class IssueRepositoryUseCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.repo.find()
     
-    def test_should_return_error_when_find_method_is_not_implement(self):
+    def test_should_return_error_when_assign_issue_method_is_not_implement(self):
         with self.assertRaises(NotImplementedError):
             self.repo.assign_issue()
+    
+    def test_should_return_error_when_all_issues_method_is_not_implement(self):
+        with self.assertRaises(NotImplementedError):
+            self.repo.all()
+    
+    def test_should_return_error_when_get_issue_by_id_method_is_not_implement(self):
+        with self.assertRaises(NotImplementedError):
+            self.repo.get_issue_by_id()
