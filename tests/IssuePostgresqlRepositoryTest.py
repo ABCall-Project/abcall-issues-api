@@ -67,6 +67,7 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         mock_session = MagicMock()
         mock_sessionmaker.return_value = mock_session
         mock_session_instance = mock_session.return_value
+        
         mock_session_instance.query.return_value.filter.return_value.one_or_none.return_value = None
         
         issue_id = uuid4()
@@ -74,5 +75,5 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         
         with self.assertRaises(ValueError) as context:
             self.repo.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
-
-        self.assertEqual(context.exception), "Issue not found"
+        
+        self.assertEqual(str(context.exception), "Issue not found")
