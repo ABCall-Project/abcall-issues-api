@@ -8,7 +8,7 @@ from ...utils import Logger
 from ...domain.models import Issue, IssueAttachment
 from ...domain.interfaces import IssueRepository
 from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy
-from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN
+from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN,ISSUE_STATUS_INPROGRESS
 from .postgres.db import Session, engine
 
 log = Logger()
@@ -254,6 +254,7 @@ class IssuePostgresqlRepository(IssueRepository):
                     if not issue:
                         raise ValueError("Issue not found")
                     issue.auth_user_agent_id = auth_user_agent_id
+                    issue.status = ISSUE_STATUS_INPROGRESS
                     session.commit()
                 except Exception as ex:
                     session.rollback()
