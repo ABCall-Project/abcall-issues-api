@@ -127,5 +127,16 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json['id'], issue_dict['id'])
         self.assertEqual(response.json['description'], issue_dict['description'])
 
+    def test_should_return_an_internal_server_error_endpoint_assign_issue(self):
+        data = {
+            "auth_user_agent_id": fake.uuid4(),
+            }
+        expected_message = "Error Assign issue"
+
+        response = self.client.post(f'/issue/assignIssue?issue_id=${fake.uuid4()}', content_type='application/json', data=data)
+
+        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json["message"], expected_message)
+
 
         

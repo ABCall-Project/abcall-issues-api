@@ -160,3 +160,23 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.limit, 10)
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
+
+    def test_error_in_issue_assign_issue(self):
+        with self.assertRaises(ValueError) as context:
+            issue_service = IssueService()
+            self.assertRaises(issue_service.assign_issue(issue_id='', auth_user_agent_id=""))
+        error_expected = "Issue ID and Auth User Agent ID are required"
+
+        self.assertEqual(str(context.exception), error_expected)
+    
+    def test_should_assign_an_issue(self):
+        uuid_mock = "e3a54f43-3e8d-4c16-b340-9aba07dfb1ec"
+        issue_mock = IssueBuilder() \
+                    .with_id(uuid_mock) \
+                    .build()
+        issue_service = IssueService(issue_repository=IssueMockRepository([issue_mock]))
+        result = issue_service.assign_issue(issue_id=issue_mock.id, auth_user_agent_id=uuid_mock)
+        
+        self.assertEqual(result, "Issue Asignado correctamente")
+
+        

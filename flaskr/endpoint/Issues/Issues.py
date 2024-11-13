@@ -18,6 +18,16 @@ class Issue(Resource):
         self.service = IssueService(self.issue_repository)
 
     def post(self,action=None):
+        if action == 'assignIssue':
+            return self.assignIssue()
+        elif action =='post':
+            return self.createIssue()
+        else:
+            return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
+
+       
+    def createIssue(self):
+        log.info(f'Receive request createIssue')
         try:
             file_path = None
             file = request.files.get('file')
@@ -202,6 +212,24 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying to get all issues list: {ex}')
             return {'message': 'Something was wrong trying to get all issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+
+    def assignIssue(self):
+        try:
+            log.info(f'Receive request to assignIssue')
+            data = request.get_json()
+            issue_id = str(request.args.get('issue_id'))
+            auth_user_agent_id = data.get('auth_user_agent_id')
+
+            self.service.assign_issue(issue_id=issue_id,auth_user_agent_id=auth_user_agent_id)
+            return {"message": f"Issue Asignado correctamente"}, HTTPStatus.OK
+
+        except ValueError as ex:
+            log.error(f'There was an error validate the values {ex}')
+            return {'message': f'{ex}'}, HTTPStatus.BAD_REQUEST
+        except Exception as ex:
+            log.error(f"Error while Assign issue: {ex}")
+            return {"message": "Error Assign issue"}, HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 class Issues(Resource):
     def __init__(self):

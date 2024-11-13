@@ -59,3 +59,20 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         result = self.repo.list_issues_filtered(user_id=mock_issue.auth_user_id, status='OPEN')
 
         self.assertGreaterEqual(len(result), 0)
+
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
+    def test_issue_assign_issue_not_found(self, mock_sessionmaker, mock_create_engine):
+        mock_session = MagicMock()
+        mock_sessionmaker.return_value = mock_session
+        mock_session_instance = mock_session.return_value
+        
+        mock_session_instance.query.return_value.filter.return_value.one_or_none.return_value = None
+        
+        issue_id = uuid4()
+        auth_user_agent_id = uuid4()
+        
+        with self.assertRaises(ValueError) as context:
+            self.repo.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
+        
+        self.assertEqual(str(context.exception), "Issue not found")
