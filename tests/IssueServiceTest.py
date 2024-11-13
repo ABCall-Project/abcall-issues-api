@@ -169,7 +169,7 @@ class TestIssueService(unittest.TestCase):
 
         self.assertEqual(str(context.exception), error_expected)
     
-    @patch('flaskr.application.issue_service.assignIssue')
+    @patch('flaskr.application.issue_service.assign_issue')
     def test_should_assign_an_issue(self, IssueStatusMock):
         
         instance = IssueStatusMock.return_value
