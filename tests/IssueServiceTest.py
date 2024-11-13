@@ -174,7 +174,7 @@ class TestIssueService(unittest.TestCase):
         issue_mock = IssueBuilder() \
                     .with_id(uuid_mock) \
                     .build()
-        issue_service = IssueService(issue_repository=IssueMockRepository(issue_mock))
+        issue_service = IssueService(issue_repository=IssueMockRepository([issue_mock]))
         result = issue_service.assign_issue(issue_id=issue_mock.id, auth_user_agent_id=uuid_mock)
         
         self.assertEqual(result, "Issue Asignado correctamente")
