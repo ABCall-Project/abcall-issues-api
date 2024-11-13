@@ -170,9 +170,12 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(str(context.exception), error_expected)
     
     def test_should_assign_an_issue(self):
-        issue_service = IssueService()
         uuid_mock = "e3a54f43-3e8d-4c16-b340-9aba07dfb1ec"
-        result = issue_service.assign_issue(issue_id='1d9d188b-7edb-44fe-b0e5-9c2dfa602c4a', auth_user_agent_id=uuid_mock)
+        issue_mock = IssueBuilder() \
+                    .with_id(uuid_mock) \
+                    .build()
+        issue_service = IssueService(issue_repository=IssueMockRepository(issue_mock))
+        result = issue_service.assign_issue(issue_id=issue_mock.id, auth_user_agent_id=uuid_mock)
         
         self.assertEqual(result, "Issue Asignado correctamente")
 
