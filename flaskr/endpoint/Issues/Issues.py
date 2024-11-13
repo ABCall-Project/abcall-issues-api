@@ -20,8 +20,10 @@ class Issue(Resource):
     def post(self,action=None):
         if action == 'assignIssue':
             return self.assignIssue()
-        else:
+        elif action =='post':
             return self.createIssue()
+        else:
+            return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
 
        
     def createIssue(self):
