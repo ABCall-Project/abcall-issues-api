@@ -167,6 +167,6 @@ class TestIssueService(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             issue_service = IssueService()
             self.assertRaises(issue_service.assign_issue(issue_id='', auth_user_agent_id=""))
-        error_expected = "All fields are required to create an issue."
+        error_expected = "Issue ID and Auth User Agent ID are required"
 
         self.assertEqual(str(context.exception), error_expected)
