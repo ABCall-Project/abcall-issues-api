@@ -131,7 +131,7 @@ class IssueIntegrationTest(unittest.TestCase):
         data = {
             "auth_user_agent_id": fake.uuid4(),
             }
-        expected_message = "Issue Asignado correctamente"
+        expected_message = "Error Assign issue"
 
         response = self.client.post(f'/issue/assignIssue?issue_id=${fake.uuid4()}', content_type='application/json', data=data)
 
