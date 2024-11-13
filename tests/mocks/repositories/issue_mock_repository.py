@@ -50,4 +50,6 @@ class IssueMockRepository(IssueRepository):
             issue = next((i for i in self.issues if i.id == issue_id), None)
             if issue:
                 issue.auth_user_agent_id = auth_user_agent_id
-            return issue
+            if issue is None:
+                raise ValueError("Issue not found")
+            return "Issue Asignado correctamente"
