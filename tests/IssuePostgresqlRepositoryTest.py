@@ -63,7 +63,6 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
     @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
     @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
     def test_issue_assign_issue_not_found(self, mock_sessionmaker, mock_create_engine):
-        # Configura el mock de la sesión
         mock_session = MagicMock()
         mock_sessionmaker.return_value = mock_session
         mock_session_instance = mock_session.return_value

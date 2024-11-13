@@ -161,8 +161,6 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
 
-
-
     def test_error_in_issue_assign_issue(self):
         with self.assertRaises(ValueError) as context:
             issue_service = IssueService()
@@ -170,3 +168,15 @@ class TestIssueService(unittest.TestCase):
         error_expected = "Issue ID and Auth User Agent ID are required"
 
         self.assertEqual(str(context.exception), error_expected)
+    
+    @patch('flaskr.application.issue_service.assignIssue')
+    def test_should_assign_an_issue(self, IssueStatusMock):
+        
+        instance = IssueStatusMock.return_value
+        uuid_mock = "e3a54f43-3e8d-4c16-b340-9aba07dfb1ec"
+        instance.NEW.return_value = {"message": "Issue Asignado correctamente"}
+
+        issue_service = IssueService(issue_repository=IssueMockRepository([]))
+        issue = issue_service.assign_issue(issue_id='1d9d188b-7edb-44fe-b0e5-9c2dfa602c4a', auth_user_agent_id=uuid_mock)
+
+        self.assertEqual(issue.message, "Issue Asignado correctamente")
