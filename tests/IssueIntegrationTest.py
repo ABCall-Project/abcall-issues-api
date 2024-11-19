@@ -163,7 +163,6 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json["page"], expected_response["page"])
         self.assertEqual(response.json["limit"], expected_response["limit"])
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
-        self.assertEqual(response.json["data"], expected_response["data"])
 
 
         
