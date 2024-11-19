@@ -162,9 +162,9 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json["page"], expected_response["page"])
         self.assertEqual(response.json["limit"], expected_response["limit"])
-        self.assertEqual(1, expected_response["total_pages"])
+        self.assertEqual(response.json["total_pages"], expected_response["total_pages"])
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
-        self.assertEqual(response.json["data"][0]["auth_user_id"], expected_response["data"][0].auth_user_id)
+        self.assertEqual(response.json["data"], expected_response["data"])
 
 
         
