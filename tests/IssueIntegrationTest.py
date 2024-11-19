@@ -157,7 +157,7 @@ class IssueIntegrationTest(unittest.TestCase):
         expected_response = FindIssueBuilder().with_data(issues).build()
 
         self.client.post('/issue/post', content_type='multipart/form-data', data=data)
-        response = self.client.get(f'/issue/getOpenIssues?page=1&limit=2')
+        response = self.client.get(f'/issue/getOpenIssues?page=${expected_response["page"]}&limit=${expected_response["limit"]}')
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json["page"], expected_response["page"])
