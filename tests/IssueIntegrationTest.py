@@ -154,7 +154,7 @@ class IssueIntegrationTest(unittest.TestCase):
                         .build()
         issues = []
         issues.append(expected_issue)
-        expected_response = FindIssueBuilder().with_data(issues).build()
+        expected_response = FindIssueBuilder().with_data(issues).with_has_next(False).build()
 
         self.client.post('/issue/post', content_type='multipart/form-data', data=data)
         response = self.client.get(f'/issue/getOpenIssues?page=1&limit=2')
