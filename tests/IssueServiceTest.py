@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 from builder import AuthUserCustomerBuilder, IssueBuilder, IssueAttachmentBuilder
 from flaskr.application.issue_service import IssueService
 from flaskr.domain.models import Issue, AuthUserCustomer
@@ -178,5 +178,20 @@ class TestIssueService(unittest.TestCase):
         result = issue_service.assign_issue(issue_id=issue_mock.id, auth_user_agent_id=uuid_mock)
         
         self.assertEqual(result, "Issue Asignado correctamente")
+    
+    def test_should_get_open_issues(self):
+        issues_mocked: list[Issue] = []
+        issues_mocked.append(IssueBuilder().build())
+
+        issue_service = IssueService(issue_repository=IssueMockRepository(issues_mocked))
+        issues = issue_service.get_open_issues(issue_service,1,10)
+        issue_obj = dict_to_obj(issues)
+
+
+        self.assertEqual(len(issue_obj.data), 1)
+        self.assertEqual(issue_obj.page, 1)
+        self.assertEqual(issue_obj.limit, 10)
+        self.assertEqual(issue_obj.total_pages, 1)
+        self.assertFalse(issue_obj.has_next)
 
         

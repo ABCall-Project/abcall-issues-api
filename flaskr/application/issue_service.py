@@ -193,4 +193,11 @@ class IssueService:
                     )
             
             return issue_response
+
+    def get_open_issues(self,page: int, limit: int):
+        self.log.info('Receive IssueService get_open_issues')
+        if not page or not limit:
+            raise ValueError("All fields are required to get issues.")
+        return self.issue_repository.get_open_issues(page=page,
+                    limit=limit)
     

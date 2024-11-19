@@ -258,4 +258,39 @@ class IssuePostgresqlRepository(IssueRepository):
                     session.commit()
                 except Exception as ex:
                     session.rollback()
-                    raise ex 
+                    raise ex
+    def get_open_issues(self,page=None,limit=None):
+        with self.session() as session:
+            log.info('Receive request IssuePostgresqlRepository --->')
+            try:
+                total_items = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.status == ISSUE_STATUS_OPEN).count()
+                total_pages = ceil(total_items / limit)
+                has_next = page < total_pages
+                issues = (session.query(IssueModelSqlAlchemy)
+                            .join(IssueStateSqlAlchemy)
+                            .filter(IssueModelSqlAlchemy.status == ISSUE_STATUS_OPEN)
+                            .order_by(desc(IssueModelSqlAlchemy.created_at))
+                            .offset((page - 1) * limit)
+                            .limit(limit)
+                            .all()
+                    )
+                data = [{
+                        "id": str(issue.id),
+                        "auth_user_id": str(issue.auth_user_id),
+                        "status": str(issue.issue_status.name),
+                        "subject": issue.subject,
+                        "description": issue.description,
+                        "created_at": str(issue.created_at),
+                        "closed_at": str(issue.closed_at),
+                        "channel_plan_id": str(issue.channel_plan_id)
+                        } for issue in issues]
+
+                return {
+                    "page": page,
+                    "limit": limit,
+                    "total_pages": total_pages,
+                    "has_next": has_next,
+                    "data": data
+                }
+            finally:
+                session.close()
