@@ -184,7 +184,7 @@ class TestIssueService(unittest.TestCase):
         issues_mocked.append(IssueBuilder().build())
 
         issue_service = IssueService(issue_repository=IssueMockRepository(issues_mocked))
-        issues = issue_service.get_open_issues(issue_service,1,10)
+        issues = issue_service.get_open_issues(1,10)
         issue_obj = dict_to_obj(issues)
 
 
