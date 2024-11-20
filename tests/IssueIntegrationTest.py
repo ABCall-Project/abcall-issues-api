@@ -137,6 +137,32 @@ class IssueIntegrationTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json["message"], expected_message)
+    
+    def test_should_get_open_issues_by_user(self):
+        user_id = fake.uuid4()
+        data = {
+            'auth_user_id': user_id,
+            'auth_user_agent_id': fake.uuid4(),
+            'subject': fake.word(),
+            'description': fake.sentence()
+        }
+        expected_issue = IssueBuilder() \
+                          .with_auth_user_id(data['auth_user_id']) \
+                          .with_auth_user_agent_id(data['auth_user_agent_id']) \
+                          .with_subject(data["subject"]) \
+                          .with_description(data["description"]) \
+                        .build()
+        issues = []
+        issues.append(expected_issue)
+        expected_response = FindIssueBuilder().with_data(issues).with_has_next(True).build()
+
+        self.client.post('/issue/post', content_type='multipart/form-data', data=data)
+        response = self.client.get(f'/issue/getOpenIssues?page=1&limit=2')
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.json["page"], expected_response["page"])
+        self.assertEqual(response.json["limit"], expected_response["limit"])
+        self.assertEqual(response.json["has_next"], expected_response["has_next"])
 
 
         

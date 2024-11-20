@@ -32,4 +32,7 @@ class IssueRepository:
         raise NotImplementedError  
     
     def assign_issue(self) -> dict:
-        raise NotImplementedError  
+        raise NotImplementedError
+
+    def get_open_issues(self,page=None,limit=None):
+        raise NotImplementedError

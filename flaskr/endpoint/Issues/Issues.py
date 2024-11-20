@@ -79,6 +79,8 @@ class Issue(Resource):
             return self.getIssueDetail()
         elif action == 'getAllIssues':
             return self.getAllIssues()
+        elif action == 'getOpenIssues':
+            return self.getOpenIssues()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
@@ -212,6 +214,18 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying to get all issues list: {ex}')
             return {'message': 'Something was wrong trying to get all issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+
+    def getOpenIssues(self):
+        try:
+            log.info(f'Receive request to getOpenIssues')
+            page = int(request.args.get('page'))
+            limit = int(request.args.get('limit'))
+            issues_list = self.service.get_open_issues(page=page,limit=limit)
+            
+            return issues_list, HTTPStatus.OK
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get open issues list: {ex}')
+            return {'message': 'Something was wrong trying to get open issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
 
     def assignIssue(self):
         try:
