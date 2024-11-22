@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 from ..models.issue import Issue
 from ..models.issue_attachment import IssueAttachment
-
+from ..models.issue_trace import IssueTrace
 class IssueRepository:
     def list(self) -> List[Issue]:
         raise NotImplementedError
@@ -35,4 +35,7 @@ class IssueRepository:
         raise NotImplementedError
 
     def get_open_issues(self,page=None,limit=None):
+        raise NotImplementedError
+
+    def create_issue_trace(self,issue_trace:IssueTrace):
         raise NotImplementedError

@@ -46,3 +46,9 @@ class IssueRepositoryUseCase(unittest.TestCase):
     def test_should_return_error_when_get_open_issues_is_not_implement(self):
         with self.assertRaises(NotImplementedError):
             self.repo.get_open_issues(limit="", page="")
+    
+    def test_should_return_error_when_create_issue_trace_method_is_not_implement(self):
+        with self.assertRaises(NotImplementedError):
+            self.repo.create_issue_trace(issue_trace="")
+    
+    

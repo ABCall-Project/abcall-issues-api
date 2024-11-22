@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from uuid import uuid4
 from flaskr.infrastructure.databases.issue_postresql_repository import IssuePostgresqlRepository
-from flaskr.domain.models import Issue, IssueAttachment
+from flaskr.domain.models import Issue, IssueAttachment,IssueTrace
 
 class TestIssuePostgresqlRepository(unittest.TestCase):
     @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
@@ -74,5 +74,29 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         
         with self.assertRaises(ValueError) as context:
             self.repo.assign_issue(issue_id=issue_id, auth_user_agent_id=auth_user_agent_id)
+        
+        self.assertEqual(str(context.exception), "Issue not found")
+    
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
+    def test_issue_assign_issue_not_found(self, mock_sessionmaker):
+        mock_session = MagicMock()
+        mock_sessionmaker.return_value = mock_session
+        mock_session_instance = mock_session.return_value
+        
+        mock_session_instance.query.return_value.filter.return_value.one_or_none.return_value = None
+        
+        mock_issue_trace = IssueTrace(
+            id=uuid4(),
+            auth_user_id=uuid4(),
+            issue_id= uuid4(),
+            auth_user_agent_id=uuid4(),
+            scope='test OPEN',
+            created_at='2023-03-01',
+            channel_plan_id=uuid4()
+        )
+        
+        with self.assertRaises(ValueError) as context:
+            self.repo.create_issue_trace(issue_trace=mock_issue_trace)
         
         self.assertEqual(str(context.exception), "Issue not found")
