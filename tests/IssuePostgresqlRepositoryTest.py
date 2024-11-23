@@ -92,8 +92,7 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
             issue_id= uuid4(),
             auth_user_agent_id=uuid4(),
             scope='test OPEN',
-            created_at='2023-03-01',
-            channel_plan_id=uuid4()
+            created_at='2023-03-01'
         )
         
         with self.assertRaises(ValueError) as context:
