@@ -79,7 +79,7 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
     
     @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
     @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
-    def test_issue_create_issue_trace_not_found(self, mock_sessionmaker,mock_create_engine):
+    def test_issue_create_issue_trace_not_found(self, mock_sessionmaker, mock_create_engine):
         mock_session = MagicMock()
         mock_sessionmaker.return_value = mock_session
         mock_session_instance = mock_session.return_value
@@ -89,7 +89,7 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         mock_issue_trace = IssueTrace(
             id=uuid4(),
             auth_user_id=uuid4(),
-            issue_id= uuid4(),
+            issue_id=uuid4(),
             auth_user_agent_id=uuid4(),
             scope='test OPEN',
             created_at='2023-03-01',

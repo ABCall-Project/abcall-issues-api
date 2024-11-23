@@ -295,13 +295,17 @@ class IssuePostgresqlRepository(IssueRepository):
             finally:
                 session.close()
     
-    def create_issue_trace(self,issue_trace:IssueTrace):
+    def create_issue_trace(self, issue_trace: IssueTrace):
         with self.session() as session:
             try:
-                log.info(f'Receive request Postgress to create_issue_trace')
-                issue = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.id == issue_trace.issue_id).one_or_none()
-                issue_trace.channel_plan_id = issue.channel_plan_id
+                log.info(f'Receive request Postgres to create_issue_trace')
 
+                issue = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.id == issue_trace.issue_id).one_or_none()
+
+                if issue is None:
+                    raise ValueError("Issue not found")
+
+                issue_trace.channel_plan_id = issue.channel_plan_id
                 issue_trace_model = self._to_model_issue_trace(issue_trace)
                 session.add(issue_trace_model)
                 session.commit()
