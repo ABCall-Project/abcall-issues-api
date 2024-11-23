@@ -68,6 +68,7 @@ docker-db-truncate:
 	docker exec issue-test-db psql -U develop -d issue-db  -c  "TRUNCATE TABLE issue CASCADE;"
 	docker exec issue-test-db psql -U develop -d issue-db  -c  "TRUNCATE TABLE issue_state CASCADE;"
 	docker exec issue-test-db psql -U develop -d issue-db  -c  "TRUNCATE TABLE issue_attachment CASCADE;"
+	docker exec issue-test-db psql -U develop -d issue-db  -c  "TRUNCATE TABLE issue_trace CASCADE;"
 
 
 kubernetes-up:

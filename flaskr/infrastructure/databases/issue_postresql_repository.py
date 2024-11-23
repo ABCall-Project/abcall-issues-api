@@ -5,9 +5,9 @@ from sqlalchemy import create_engine,extract, func, desc
 from sqlalchemy.orm import sessionmaker
 from typing import List, Optional
 from ...utils import Logger
-from ...domain.models import Issue, IssueAttachment
+from ...domain.models import Issue, IssueAttachment,IssueTrace
 from ...domain.interfaces import IssueRepository
-from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy
+from ...infrastructure.databases.model_sqlalchemy import Base, IssueModelSqlAlchemy, IssueAttachmentSqlAlchemy, IssueStateSqlAlchemy,IssueTraceSqlAlchemy
 from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN,ISSUE_STATUS_INPROGRESS
 from .postgres.db import Session, engine
 
@@ -294,3 +294,39 @@ class IssuePostgresqlRepository(IssueRepository):
                 }
             finally:
                 session.close()
+    
+    def create_issue_trace(self, issue_trace: IssueTrace):
+        with self.session() as session:
+            try:
+                log.info(f'Receive request Postgres to create_issue_trace')
+
+                issue = session.query(IssueModelSqlAlchemy).filter(IssueModelSqlAlchemy.id == issue_trace.issue_id).one_or_none()
+
+                if issue is None:
+                    raise ValueError("Issue not found")
+
+                issue_trace.channel_plan_id = issue.channel_plan_id
+                issue_trace_model = self._to_model_issue_trace(issue_trace)
+                session.add(issue_trace_model)
+                session.commit()
+                session.refresh(issue_trace_model)
+
+            except Exception as e:
+                if session:
+                    session.rollback()
+                raise e
+            finally:
+                if session:
+                    session.close()
+
+    def _to_model_issue_trace(self,issueTrace:IssueTraceSqlAlchemy)->IssueTraceSqlAlchemy:
+        trace = IssueTraceSqlAlchemy(
+                id=issueTrace.id,
+                issue_id=issueTrace.issue_id,
+                auth_user_id = issueTrace.auth_user_id,
+                auth_user_agent_id = issueTrace.auth_user_agent_id,
+                scope = issueTrace.scope,
+                channel_plan_id = issueTrace.channel_plan_id
+        )
+
+        return trace  

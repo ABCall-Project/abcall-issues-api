@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import TypedDict
 from ..domain.interfaces.issue_repository import IssueRepository
-from ..domain.models import Issue, IssueAttachment
+from ..domain.models import Issue, IssueAttachment,IssueTrace
 from ..utils import Logger
 from  config import Config
 from .auth_service import AuthService
@@ -201,3 +201,16 @@ class IssueService:
         return self.issue_repository.get_open_issues(page=page,
                     limit=limit)
     
+    def create_issue_trace(self, issue_id:UUID, auth_user_id:UUID, auth_user_agent_id:UUID, scope:str):
+        log.info(f'Receive request to create_issue_trace')
+        trace = IssueTrace(
+            id=uuid.uuid4(),
+            issue_id=issue_id,
+            auth_user_id=auth_user_id,
+            auth_user_agent_id=auth_user_agent_id,
+            scope=scope,
+            created_at=datetime.utcnow(),
+            channel_plan_id=None
+        )
+
+        self.issue_repository.create_issue_trace(trace)    

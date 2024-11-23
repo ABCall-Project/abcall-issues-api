@@ -36,3 +36,15 @@ class IssueAttachmentSqlAlchemy(Base):
     file_path = Column(String(255), nullable=False) 
 
     issue = relationship("IssueModelSqlAlchemy", backref="attachments")
+
+class IssueTraceSqlAlchemy(Base):
+    __tablename__ = 'issue_trace'
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    issue_id = Column(PG_UUID(as_uuid=True), ForeignKey('issue.id'), nullable=False)
+    auth_user_id = Column(PG_UUID(as_uuid=True), nullable=True)
+    auth_user_agent_id = Column(PG_UUID(as_uuid=True), nullable=True)
+    scope = Column(String(255), nullable=True)
+    channel_plan_id = Column(PG_UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=func.now()) 
+    

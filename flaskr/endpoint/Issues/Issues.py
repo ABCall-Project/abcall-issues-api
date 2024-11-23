@@ -6,7 +6,7 @@ from http import HTTPStatus
 from flaskr.application.issue_service import IssueService
 from flaskr.infrastructure.databases.issue_postresql_repository import IssuePostgresqlRepository
 from ...utils import Logger
-
+from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN,ISSUE_STATUS_INPROGRESS
 
 log = Logger()
 
@@ -234,7 +234,10 @@ class Issue(Resource):
             issue_id = str(request.args.get('issue_id'))
             auth_user_agent_id = data.get('auth_user_agent_id')
 
+
             self.service.assign_issue(issue_id=issue_id,auth_user_agent_id=auth_user_agent_id)
+            #Trace de asignacion
+            self.service.create_issue_trace(issue_id,None,auth_user_agent_id, 'assignIssue - Estado: ISSUE_STATUS_INPROGRESS')
             return {"message": f"Issue Asignado correctamente"}, HTTPStatus.OK
 
         except ValueError as ex:
