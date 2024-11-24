@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 from ..models.issue import Issue
 from ..models.issue_attachment import IssueAttachment
-
+from ..models.issue_trace import IssueTrace
 class IssueRepository:
     def list(self) -> List[Issue]:
         raise NotImplementedError
@@ -26,4 +26,19 @@ class IssueRepository:
         raise NotImplementedError
     
     def get_issue_by_id(self, issue_id) -> Optional[Issue]:
-        raise NotImplementedError    
+        raise NotImplementedError   
+
+    def all(self) -> Optional[Issue]:
+        raise NotImplementedError  
+    
+    def assign_issue(self) -> dict:
+        raise NotImplementedError
+
+    def get_open_issues(self,page=None,limit=None):
+        raise NotImplementedError
+
+    def create_issue_trace(self,issue_trace:IssueTrace):
+        raise NotImplementedError
+    
+    def get_top_7_incident_types(self) -> List[Issue]:
+        raise NotImplementedError

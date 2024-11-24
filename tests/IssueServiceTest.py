@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 from builder import AuthUserCustomerBuilder, IssueBuilder, IssueAttachmentBuilder
 from flaskr.application.issue_service import IssueService
 from flaskr.domain.models import Issue, AuthUserCustomer
@@ -110,7 +110,6 @@ class TestIssueService(unittest.TestCase):
             description=issue_mock.description
         )
 
-
         self.assertEqual(issue.id, issue_mock.id)
 
     @patch('flaskr.application.issue_service.IssueStatus')
@@ -162,9 +161,68 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
 
+    def test_error_in_issue_assign_issue(self):
+        with self.assertRaises(ValueError) as context:
+            issue_service = IssueService()
+            self.assertRaises(issue_service.assign_issue(issue_id='', auth_user_agent_id=""))
+        error_expected = "Issue ID and Auth User Agent ID are required"
+
+        self.assertEqual(str(context.exception), error_expected)
+    
+    def test_should_assign_an_issue(self):
+        uuid_mock = "e3a54f43-3e8d-4c16-b340-9aba07dfb1ec"
+        issue_mock = IssueBuilder() \
+                    .with_id(uuid_mock) \
+                    .build()
+        issue_service = IssueService(issue_repository=IssueMockRepository([issue_mock]))
+        result = issue_service.assign_issue(issue_id=issue_mock.id, auth_user_agent_id=uuid_mock)
         
+        self.assertEqual(result, "Issue Asignado correctamente")
+    
+    def test_should_get_open_issues(self):
+        issues_mocked: list[Issue] = []
+        issues_mocked.append(IssueBuilder().build())
+
+        issue_service = IssueService(issue_repository=IssueMockRepository(issues_mocked))
+        issues = issue_service.get_open_issues(1,10)
+        issue_obj = dict_to_obj(issues)
 
 
+        self.assertEqual(len(issue_obj.data), 1)
+        self.assertEqual(issue_obj.page, 1)
+        self.assertEqual(issue_obj.limit, 10)
+        self.assertEqual(issue_obj.total_pages, 1)
+        self.assertFalse(issue_obj.has_next)
 
 
+    @patch('flaskr.application.issue_service.IssueRepository')  
+    def test_get_top_7_incident_types(self, MockIssueRepository):
+        """
+        Test the get_top_7_incident_types method in the IssueService.
+        """
+        issues_mocked = [
+            IssueBuilder().with_subject('Type 1').build(),
+            IssueBuilder().with_subject('Type 2').build(),
+            IssueBuilder().with_subject('Type 3').build(),
+            IssueBuilder().with_subject('Type 4').build(),
+            IssueBuilder().with_subject('Type 5').build(),
+            IssueBuilder().with_subject('Type 6').build(),
+            IssueBuilder().with_subject('Type 7').build(),
+        ]
 
+
+        mock_repository_instance = MockIssueRepository.return_value
+        mock_repository_instance.get_top_7_incident_types.return_value = issues_mocked
+
+
+        issue_service = IssueService(issue_repository=mock_repository_instance)
+
+
+        result = issue_service.get_top_7_incident_types()
+
+
+        self.assertEqual(len(result), 7)
+        mock_repository_instance.get_top_7_incident_types.assert_called_once()
+
+
+        

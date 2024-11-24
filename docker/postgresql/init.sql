@@ -41,3 +41,17 @@ CREATE TABLE IF NOT EXISTS issue_attachment (
         REFERENCES issue (id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS issue_trace (
+    id UUID PRIMARY KEY, 
+    issue_id UUID,
+    auth_user_id UUID  NULL,
+    auth_user_agent_id UUID  NULL,
+    scope VARCHAR(255),
+    channel_plan_id UUID,
+    created_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT fk_issue
+        FOREIGN KEY (issue_id) 
+        REFERENCES issue (id)
+        ON DELETE CASCADE
+);

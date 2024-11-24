@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import TypedDict
 from ..domain.interfaces.issue_repository import IssueRepository
-from ..domain.models import Issue, IssueAttachment
+from ..domain.models import Issue, IssueAttachment,IssueTrace
 from ..utils import Logger
 from  config import Config
 from .auth_service import AuthService
@@ -65,8 +65,6 @@ class IssueService:
             return None
         
     def get_issue_by_id(self, issue_id: str) -> Optional[dict]:
-        auth_service = AuthService()
-
         try:
             issue = self.issue_repository.get_issue_by_id(issue_id=issue_id)
             if issue:
@@ -178,3 +176,46 @@ class IssueService:
                 return 'No se puede dar sugerencias en este momento'
         else:
             return 'No se pudo identificar al cliente para dar sugerencias'
+
+    def get_all_issues(self):
+        self.log.info(f'get_all_issues')
+        issues = self.issue_repository.all()
+        return issues
+
+    def assign_issue(self, issue_id: UUID= None, auth_user_agent_id: UUID = None):
+            self.log.info(f'Service assign_issue')
+            if not issue_id or not auth_user_agent_id:
+                raise ValueError("Issue ID and Auth User Agent ID are required")
+
+            issue_response = self.issue_repository.assign_issue(
+                        issue_id=issue_id,
+                        auth_user_agent_id=auth_user_agent_id
+                    )
+            
+            return issue_response
+
+    def get_open_issues(self,page: int, limit: int):
+        self.log.info('Receive IssueService get_open_issues')
+        if not page or not limit:
+            raise ValueError("All fields are required to get issues.")
+        return self.issue_repository.get_open_issues(page=page,
+                    limit=limit)
+    
+    def create_issue_trace(self, issue_id:UUID, auth_user_id:UUID, auth_user_agent_id:UUID, scope:str):
+        log.info(f'Receive request to create_issue_trace')
+        trace = IssueTrace(
+            id=uuid.uuid4(),
+            issue_id=issue_id,
+            auth_user_id=auth_user_id,
+            auth_user_agent_id=auth_user_agent_id,
+            scope=scope,
+            created_at=datetime.utcnow(),
+            channel_plan_id=None
+        )
+
+        self.issue_repository.create_issue_trace(trace)    
+
+
+    def get_top_7_incident_types(self) -> List[Issue]:
+        issues = self.issue_repository.get_top_7_incident_types()
+        return issues

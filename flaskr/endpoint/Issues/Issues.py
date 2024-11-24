@@ -1,3 +1,4 @@
+import random
 from flask_restful import Resource
 from flask import jsonify, request
 import os
@@ -6,7 +7,7 @@ from http import HTTPStatus
 from flaskr.application.issue_service import IssueService
 from flaskr.infrastructure.databases.issue_postresql_repository import IssuePostgresqlRepository
 from ...utils import Logger
-
+from ...domain.constants import ISSUE_STATUS_SOLVED, ISSUE_STATUS_OPEN,ISSUE_STATUS_INPROGRESS
 
 log = Logger()
 
@@ -14,10 +15,20 @@ class Issue(Resource):
 
     def __init__(self):
         config = Config()
-        self.issue_repository = IssuePostgresqlRepository(config.DATABASE_URI)
+        self.issue_repository = IssuePostgresqlRepository()
         self.service = IssueService(self.issue_repository)
 
     def post(self,action=None):
+        if action == 'assignIssue':
+            return self.assignIssue()
+        elif action =='post':
+            return self.createIssue()
+        else:
+            return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
+
+       
+    def createIssue(self):
+        log.info(f'Receive request createIssue')
         try:
             file_path = None
             file = request.files.get('file')
@@ -65,15 +76,23 @@ class Issue(Resource):
             return self.get_issues_by_user()
         elif action=='getIAPredictiveAnswer':
             return self.get_ia_predictive_answer()
-        if action == 'get_issue_by_id':
+        elif action == 'get_issue_by_id':
             return self.getIssueDetail()
+        elif action == 'getAllIssues':
+            return self.getAllIssues()
+        elif action == 'getOpenIssues':
+            return self.getOpenIssues()
+        elif action == 'getTopSevenIssues':
+            return self.get_top_seven_issues()
+        elif action == 'getPredictedData':
+            return self.get_predicted_data()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
     def getIssuesByCustomer(self):
         try:
 
-            log.info(f'Receive request to get issues by customer')
+            log.info('Receive request to get issues by customer')
             customer_id = request.args.get('customer_id')
             year = request.args.get('year')
             month = request.args.get('month')
@@ -189,11 +208,99 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f'Some error occurred trying query ai predictive: {ex}')
             return {'message': 'Something was wrong trying query ai predictive'}, HTTPStatus.INTERNAL_SERVER_ERROR
+    
+    def getAllIssues(self):
+        try:
+            log.info(f'Receive request to getAllIssues')
+            list_issues=[]
+            list_issues = self.service.get_all_issues()
+            
+            return list_issues, HTTPStatus.OK
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get all issues list: {ex}')
+            return {'message': 'Something was wrong trying to get all issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+
+    def getOpenIssues(self):
+        try:
+            log.info(f'Receive request to getOpenIssues')
+            page = int(request.args.get('page'))
+            limit = int(request.args.get('limit'))
+            issues_list = self.service.get_open_issues(page=page,limit=limit)
+            
+            return issues_list, HTTPStatus.OK
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get open issues list: {ex}')
+            return {'message': 'Something was wrong trying to get open issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+
+    def assignIssue(self):
+        try:
+            log.info(f'Receive request to assignIssue')
+            data = request.get_json()
+            issue_id = str(request.args.get('issue_id'))
+            auth_user_agent_id = data.get('auth_user_agent_id')
+
+
+            self.service.assign_issue(issue_id=issue_id,auth_user_agent_id=auth_user_agent_id)
+            #Trace de asignacion
+            self.service.create_issue_trace(issue_id,None,auth_user_agent_id, 'assignIssue - Estado: ISSUE_STATUS_INPROGRESS')
+            return {"message": f"Issue Asignado correctamente"}, HTTPStatus.OK
+
+        except ValueError as ex:
+            log.error(f'There was an error validate the values {ex}')
+            return {'message': f'{ex}'}, HTTPStatus.BAD_REQUEST
+        except Exception as ex:
+            log.error(f"Error while Assign issue: {ex}")
+            return {"message": "Error Assign issue"}, HTTPStatus.INTERNAL_SERVER_ERROR
+        
+    def get_top_seven_issues(self):
+        try:
+            log.info('Receive request to get top seven issues')
+            list_issues=[]
+            list_issues = self.service.get_top_7_incident_types()
+
+            list_issues_d=[]
+            if list_issues:
+                list_issues_d = [issue.to_dict() for issue in list_issues]
+
+            
+            return list_issues_d, HTTPStatus.OK
+            
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get top seven issues list: {ex}')
+            return {'message': 'Something was wrong trying to get top seven issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+        
+
+    def get_predicted_data(self):
+        """
+            API endpoint to return  predictedData arrays.
+        """
+        try:
+            log.info('Receive request to get predicted data')
+            real_data = [random.randint(20, 100) for _ in range(7)]
+            predicted_data = [random.randint(20, 100) for _ in range(7)]
+            real_data_issues_type=[random.randint(20, 100) for _ in range(7)]
+            predicted_data_issues_type=[random.randint(20, 100) for _ in range(7)]
+            issue_quantity=[random.randint(20, 100) for _ in range(7)]
+
+        
+            response = {
+                "realDatabyDay": real_data,
+                "predictedDatabyDay": predicted_data,
+                "realDataIssuesType": real_data_issues_type,
+                "predictedDataIssuesType": predicted_data_issues_type,
+                "issueQuantity": issue_quantity,
+            }
+            return response, 200
+        except Exception as ex:
+                log.error(f'Some error occurred trying to get predicted data: {ex}')
+                return {'message': 'Something was wrong trying to get predicted data'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+        
+
 
 class Issues(Resource):
     def __init__(self):
         config = Config()
-        self.issue_repository = IssuePostgresqlRepository(config.DATABASE_URI)
+        self.issue_repository = IssuePostgresqlRepository()
         self.service = IssueService(self.issue_repository)
 
     def get(self, action=None, user_id=None):
