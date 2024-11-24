@@ -169,7 +169,7 @@ class IssueIntegrationTest(unittest.TestCase):
         """
         Test successful response from the get_predicted_data API without mocks.
         """
-        response = self.client.get('/issue/get_predicted_data')
+        response = self.client.get('/issue/getPredictedData')
  
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
