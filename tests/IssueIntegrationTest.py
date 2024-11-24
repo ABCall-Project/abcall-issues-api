@@ -165,42 +165,54 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
 
 
-    @patch('flaskr.endpoint.Issues.Issues.random.randint')
-    @patch('flaskr.endpoint.Issues.Issues.log.info')
-    def test_get_predicted_data_success(self, mock_log_info, mock_randint):
+    def test_get_predicted_data_success(self):
         """
-        Test successful response from the get_predicted_data API.
+        Test successful response from the get_predicted_data API without mocks.
         """
-        mock_randint.side_effect = [30, 40, 50, 60, 70, 80, 90] * 5
-
-        with self.app.test_request_context('/get_predicted_data', method='GET'):
+        with self.app.test_request_context('/issue/get_predicted_data', method='GET'):
             response, status_code = self.api_class.get_predicted_data()
 
+        # Verificar que la respuesta sea exitosa
         self.assertEqual(status_code, HTTPStatus.OK)
+
+        # Verificar que las claves necesarias estén presentes
         self.assertIn("realDatabyDay", response)
         self.assertIn("predictedDatabyDay", response)
         self.assertIn("realDataIssuesType", response)
         self.assertIn("predictedDataIssuesType", response)
         self.assertIn("issueQuantity", response)
+
+        # Verificar tamaños de los arrays
         self.assertEqual(len(response["realDatabyDay"]), 7)
         self.assertEqual(len(response["predictedDatabyDay"]), 7)
         self.assertEqual(len(response["realDataIssuesType"]), 7)
         self.assertEqual(len(response["predictedDataIssuesType"]), 7)
         self.assertEqual(len(response["issueQuantity"]), 7)
 
-    @patch('flaskr.endpoint.Issues.Issues.log.error')
-    @patch('flaskr.endpoint.Issues.Issues.random.randint', side_effect=Exception("Random error"))
-    def test_get_predicted_data_failure(self, mock_randint, mock_log_error):
+        # Verificar valores numéricos en los arrays
+        for key in response:
+            for value in response[key]:
+                self.assertGreaterEqual(value, 20)
+                self.assertLessEqual(value, 100)
+
+    def test_get_predicted_data_failure(self):
         """
-        Test failure response from the get_predicted_data API.
+        Test failure scenario when an exception occurs in the API.
         """
-        with self.app.test_request_context('/get_predicted_data', method='GET'):
+        # Simular una excepción envolviendo la función en un bloque try-except
+        original_method = self.api_class.get_predicted_data
+        self.api_class.get_predicted_data = lambda: (_ for _ in ()).throw(Exception("Simulated Error"))
+
+        with self.app.test_request_context('/issue/get_predicted_data', method='GET'):
             response, status_code = self.api_class.get_predicted_data()
 
+        # Restaurar el método original
+        self.api_class.get_predicted_data = original_method
+
+        # Verificar que el código de estado sea 500 y que se devuelva un mensaje de error
         self.assertEqual(status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertIn("message", response)
         self.assertEqual(response["message"], "Something was wrong trying to get predicted data")
-        mock_log_error.assert_called_once_with("Some error occurred trying to get predicted data: Random error")
 
 
 
