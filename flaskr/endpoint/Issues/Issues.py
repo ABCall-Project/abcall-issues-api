@@ -1,3 +1,4 @@
+import random
 from flask_restful import Resource
 from flask import jsonify, request
 import os
@@ -81,13 +82,17 @@ class Issue(Resource):
             return self.getAllIssues()
         elif action == 'getOpenIssues':
             return self.getOpenIssues()
+        elif action == 'getTopSevenIssues':
+            return self.get_top_seven_issues()
+        elif action == 'getPredictedData':
+            return self.get_predicted_data()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
     def getIssuesByCustomer(self):
         try:
 
-            log.info(f'Receive request to get issues by customer')
+            log.info('Receive request to get issues by customer')
             customer_id = request.args.get('customer_id')
             year = request.args.get('year')
             month = request.args.get('month')
@@ -246,6 +251,50 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f"Error while Assign issue: {ex}")
             return {"message": "Error Assign issue"}, HTTPStatus.INTERNAL_SERVER_ERROR
+        
+    def get_top_seven_issues(self):
+        try:
+            log.info('Receive request to get top seven issues')
+            list_issues=[]
+            list_issues = self.service.get_top_7_incident_types()
+
+            list_issues_d=[]
+            if list_issues:
+                list_issues_d = [issue.to_dict() for issue in list_issues]
+
+            
+            return list_issues_d, HTTPStatus.OK
+            
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get top seven issues list: {ex}')
+            return {'message': 'Something was wrong trying to get top seven issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+        
+
+    def get_predicted_data(self):
+        """
+            API endpoint to return  predictedData arrays.
+        """
+        try:
+            log.info('Receive request to get predicted data')
+            real_data = [random.randint(20, 100) for _ in range(7)]
+            predicted_data = [random.randint(20, 100) for _ in range(7)]
+            real_data_issues_type=[random.randint(20, 100) for _ in range(7)]
+            predicted_data_issues_type=[random.randint(20, 100) for _ in range(7)]
+            issue_quantity=[random.randint(20, 100) for _ in range(7)]
+
+        
+            response = {
+                "realDatabyDay": real_data,
+                "predictedDatabyDay": predicted_data,
+                "realDataIssuesType": real_data_issues_type,
+                "predictedDataIssuesType": predicted_data_issues_type,
+                "issueQuantity": issue_quantity,
+            }
+            return response, 200
+        except Exception as ex:
+                log.error(f'Some error occurred trying to get predicted data: {ex}')
+                return {'message': 'Something was wrong trying to get predicted data'}, HTTPStatus.INTERNAL_SERVER_ERROR 
+        
 
 
 class Issues(Resource):

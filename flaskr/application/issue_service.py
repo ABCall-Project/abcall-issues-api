@@ -214,3 +214,8 @@ class IssueService:
         )
 
         self.issue_repository.create_issue_trace(trace)    
+
+
+    def get_top_7_incident_types(self) -> List[Issue]:
+        issues = self.issue_repository.get_top_7_incident_types()
+        return issues

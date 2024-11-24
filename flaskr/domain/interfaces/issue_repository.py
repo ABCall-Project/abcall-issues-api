@@ -39,3 +39,6 @@ class IssueRepository:
 
     def create_issue_trace(self,issue_trace:IssueTrace):
         raise NotImplementedError
+    
+    def get_top_7_incident_types(self) -> List[Issue]:
+        raise NotImplementedError

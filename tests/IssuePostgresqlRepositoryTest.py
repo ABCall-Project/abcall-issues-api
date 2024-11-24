@@ -100,3 +100,26 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
             self.repo.create_issue_trace(issue_trace=mock_issue_trace)
         
         self.assertEqual(str(context.exception), "Issue not found")
+
+
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.create_engine')
+    @patch('flaskr.infrastructure.databases.issue_postresql_repository.sessionmaker')
+    def test_get_top_7_incident_types(self, mock_sessionmaker, mock_create_engine):
+        mock_session = MagicMock()
+        mock_sessionmaker.return_value = mock_session
+        mock_session_instance = mock_session.return_value
+
+        mock_results = [
+            ('Incident Type 1', 10),
+            ('Incident Type 2', 8),
+            ('Incident Type 3', 7),
+            ('Incident Type 4', 6),
+            ('Incident Type 5', 5),
+            ('Incident Type 6', 4),
+            ('Incident Type 7', 3),
+        ]
+        mock_session_instance.query.return_value.group_by.return_value.order_by.return_value.limit.return_value.all.return_value = mock_results
+
+        result = self.repo.get_top_7_incident_types()
+
+        self.assertEqual(len(result), 7)  

@@ -165,4 +165,28 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
 
 
+    def test_get_predicted_data_success(self):
+        """
+        Test successful response from the get_predicted_data API
+        """
+        response = self.client.get('/issue/getPredictedData')
+ 
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+
+
+    def test_get_top_seven_issues(self):
+        """
+        Test successful response from the get_top_seven_issues API 
+        """
+        response = self.client.get('/issue/getTopSevenIssues')
+ 
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        
+
+ 
+
+
+
         

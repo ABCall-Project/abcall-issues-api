@@ -330,3 +330,29 @@ class IssuePostgresqlRepository(IssueRepository):
         )
 
         return trace  
+    
+
+    def get_top_7_incident_types(self) -> List[Issue]:
+        """
+        Get the 7 most reported types of incidents as Issue objects.
+
+        Returns:
+            List[Issue]: A list of Issue objects representing the top 7 incident types.
+        """
+        with self.session() as session:
+            try:
+                results = (
+                    session.query(IssueModelSqlAlchemy.subject, func.count(IssueModelSqlAlchemy.id).label('count'))
+                    .group_by(IssueModelSqlAlchemy.subject)
+                    .order_by(desc('count'))
+                    .limit(7)
+                    .all()
+                )
+                
+                top_issues = [
+                    self._from_model(IssueModelSqlAlchemy(subject=result[0]))
+                    for result in results
+                ]
+                return top_issues
+            finally:
+                session.close()
