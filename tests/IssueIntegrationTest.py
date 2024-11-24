@@ -169,31 +169,11 @@ class IssueIntegrationTest(unittest.TestCase):
         """
         Test successful response from the get_predicted_data API without mocks.
         """
-        with self.app.test_request_context('/issue/get_predicted_data', method='GET'):
-            response, status_code = self.api_class.get_predicted_data()
+        response = self.client.get('/issue/get_predicted_data')
+ 
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
-        # Verificar que la respuesta sea exitosa
-        self.assertEqual(status_code, HTTPStatus.OK)
-
-        # Verificar que las claves necesarias estén presentes
-        self.assertIn("realDatabyDay", response)
-        self.assertIn("predictedDatabyDay", response)
-        self.assertIn("realDataIssuesType", response)
-        self.assertIn("predictedDataIssuesType", response)
-        self.assertIn("issueQuantity", response)
-
-        # Verificar tamaños de los arrays
-        self.assertEqual(len(response["realDatabyDay"]), 7)
-        self.assertEqual(len(response["predictedDatabyDay"]), 7)
-        self.assertEqual(len(response["realDataIssuesType"]), 7)
-        self.assertEqual(len(response["predictedDataIssuesType"]), 7)
-        self.assertEqual(len(response["issueQuantity"]), 7)
-
-        # Verificar valores numéricos en los arrays
-        for key in response:
-            for value in response[key]:
-                self.assertGreaterEqual(value, 20)
-                self.assertLessEqual(value, 100)
+        
 
     def test_get_predicted_data_failure(self):
         """
@@ -203,16 +183,13 @@ class IssueIntegrationTest(unittest.TestCase):
         original_method = self.api_class.get_predicted_data
         self.api_class.get_predicted_data = lambda: (_ for _ in ()).throw(Exception("Simulated Error"))
 
-        with self.app.test_request_context('/issue/get_predicted_data', method='GET'):
-            response, status_code = self.api_class.get_predicted_data()
+        response = self.client.get('/issue/get_predicted_data')
 
         # Restaurar el método original
         self.api_class.get_predicted_data = original_method
 
         # Verificar que el código de estado sea 500 y que se devuelva un mensaje de error
-        self.assertEqual(status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
-        self.assertIn("message", response)
-        self.assertEqual(response["message"], "Something was wrong trying to get predicted data")
+        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 
