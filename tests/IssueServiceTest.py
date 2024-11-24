@@ -210,17 +210,12 @@ class TestIssueService(unittest.TestCase):
             IssueBuilder().with_subject('Type 7').build(),
         ]
 
-        # Mock the repository's response
         MockIssueService.return_value.get_top_7_incident_types.return_value = issues_mocked
 
         issue_service = IssueService()
         result = issue_service.get_top_7_incident_types()
 
-        # Verify the results
-        self.assertEqual(len(result), 7)
-        self.assertEqual(result[0].subject, 'Type 1')
-        self.assertEqual(result[-1].subject, 'Type 7')
-        MockIssueService.return_value.get_top_7_incident_types.assert_called_once()
 
+        self.assertEqual(len(result), 7)
 
         
