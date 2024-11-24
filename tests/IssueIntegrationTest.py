@@ -167,26 +167,25 @@ class IssueIntegrationTest(unittest.TestCase):
 
     def test_get_predicted_data_success(self):
         """
-        Test successful response from the get_predicted_data API without mocks.
+        Test successful response from the get_predicted_data API
         """
         response = self.client.get('/issue/getPredictedData')
  
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
+
+
+    def test_get_top_seven_issues(self):
+        """
+        Test successful response from the get_top_seven_issues API 
+        """
+        response = self.client.get('/issue/getTopSevenIssues')
+ 
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
         
 
-    # def test_get_predicted_data_failure(self):
-    #     """
-    #     Test failure scenario when an exception occurs in the API.
-    #     """
-    #     original_method = self.api_class.get_predicted_data
-    #     self.api_class.get_predicted_data = lambda: (_ for _ in ()).throw(Exception("Simulated Error"))
-
-    #     response = self.client.get('/issue/get_predicted_data')
-
-    #     self.api_class.get_predicted_data = original_method
-
-    #     self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+ 
 
 
 

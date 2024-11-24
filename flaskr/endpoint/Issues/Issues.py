@@ -83,7 +83,7 @@ class Issue(Resource):
         elif action == 'getOpenIssues':
             return self.getOpenIssues()
         elif action == 'getTopSevenIssues':
-            return self.getTopSevenIssues()
+            return self.get_top_seven_issues()
         elif action == 'getPredictedData':
             return self.get_predicted_data()
         else:
@@ -252,9 +252,9 @@ class Issue(Resource):
             log.error(f"Error while Assign issue: {ex}")
             return {"message": "Error Assign issue"}, HTTPStatus.INTERNAL_SERVER_ERROR
         
-    def getTopSevenIssues(self):
+    def get_top_seven_issues(self):
         try:
-            log.info(f'Receive request to get top seven issues')
+            log.info('Receive request to get top seven issues')
             list_issues=[]
             list_issues = self.service.get_top_7_incident_types()
 
