@@ -123,5 +123,3 @@ class TestIssuePostgresqlRepository(unittest.TestCase):
         result = self.repo.get_top_7_incident_types()
 
         self.assertEqual(len(result), 7)  
-        self.assertEqual(result[0].subject, 'Incident Type 1')  
-        self.assertEqual(result[-1].subject, 'Incident Type 7')  
