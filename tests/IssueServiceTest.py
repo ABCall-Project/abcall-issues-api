@@ -194,4 +194,33 @@ class TestIssueService(unittest.TestCase):
         self.assertEqual(issue_obj.total_pages, 1)
         self.assertFalse(issue_obj.has_next)
 
+
+    @patch('flaskr.application.issue_service.IssueService')
+    def test_get_top_7_incident_types(self, MockIssueService):
+        """
+        Test the get_top_7_incident_types method in the IssueService.
+        """
+        issues_mocked = [
+            IssueBuilder().with_subject('Type 1').build(),
+            IssueBuilder().with_subject('Type 2').build(),
+            IssueBuilder().with_subject('Type 3').build(),
+            IssueBuilder().with_subject('Type 4').build(),
+            IssueBuilder().with_subject('Type 5').build(),
+            IssueBuilder().with_subject('Type 6').build(),
+            IssueBuilder().with_subject('Type 7').build(),
+        ]
+
+        # Mock the repository's response
+        MockIssueService.return_value.get_top_7_incident_types.return_value = issues_mocked
+
+        issue_service = IssueService()
+        result = issue_service.get_top_7_incident_types()
+
+        # Verify the results
+        self.assertEqual(len(result), 7)
+        self.assertEqual(result[0].subject, 'Type 1')
+        self.assertEqual(result[-1].subject, 'Type 7')
+        MockIssueService.return_value.get_top_7_incident_types.assert_called_once()
+
+
         
