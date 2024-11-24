@@ -81,6 +81,8 @@ class Issue(Resource):
             return self.getAllIssues()
         elif action == 'getOpenIssues':
             return self.getOpenIssues()
+        elif action == 'getTopSevenIssues':
+            return self.getTopSevenIssues()
         else:
             return {"message": "Action not found"}, HTTPStatus.NOT_FOUND
         
@@ -246,6 +248,23 @@ class Issue(Resource):
         except Exception as ex:
             log.error(f"Error while Assign issue: {ex}")
             return {"message": "Error Assign issue"}, HTTPStatus.INTERNAL_SERVER_ERROR
+        
+    def getTopSevenIssues(self):
+        try:
+            log.info(f'Receive request to get top seven issues')
+            list_issues=[]
+            list_issues = self.service.get_top_7_incident_types()
+
+            list_issues_d=[]
+            if list_issues:
+                list_issues_d = [issue.to_dict() for issue in list_issues]
+
+            
+            return list_issues_d, HTTPStatus.OK
+            
+        except Exception as ex:
+            log.error(f'Some error occurred trying to get top seven issues list: {ex}')
+            return {'message': 'Something was wrong trying to get top seven issues list'}, HTTPStatus.INTERNAL_SERVER_ERROR 
 
 
 class Issues(Resource):
