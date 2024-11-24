@@ -165,4 +165,48 @@ class IssueIntegrationTest(unittest.TestCase):
         self.assertEqual(response.json["has_next"], expected_response["has_next"])
 
 
+    @patch('flaskr.endpoint.Issues.random.randint')
+    @patch('flaskr.endpoint.Issues.log.info')
+    def test_get_predicted_data_success(self, mock_log_info, mock_randint):
+        """
+        Test successful response from the get_predicted_data API.
+        """
+        # Mockear valores aleatorios
+        mock_randint.side_effect = [30, 40, 50, 60, 70, 80, 90] * 5
+
+        # Realizar la solicitud
+        with self.app.test_request_context('/get_predicted_data', method='GET'):
+            response, status_code = self.api_class.get_predicted_data()
+
+        # Verificaciones
+        self.assertEqual(status_code, HTTPStatus.OK)
+        self.assertIn("realDatabyDay", response)
+        self.assertIn("predictedDatabyDay", response)
+        self.assertIn("realDataIssuesType", response)
+        self.assertIn("predictedDataIssuesType", response)
+        self.assertIn("issueQuantity", response)
+        self.assertEqual(len(response["realDatabyDay"]), 7)
+        self.assertEqual(len(response["predictedDatabyDay"]), 7)
+        self.assertEqual(len(response["realDataIssuesType"]), 7)
+        self.assertEqual(len(response["predictedDataIssuesType"]), 7)
+        self.assertEqual(len(response["issueQuantity"]), 7)
+
+    @patch('flaskr.endpoint.Issues.log.error')
+    @patch('flaskr.endpoint.Issues.random.randint', side_effect=Exception("Random error"))
+    def test_get_predicted_data_failure(self, mock_randint, mock_log_error):
+        """
+        Test failure response from the get_predicted_data API.
+        """
+        # Realizar la solicitud
+        with self.app.test_request_context('/get_predicted_data', method='GET'):
+            response, status_code = self.api_class.get_predicted_data()
+
+        # Verificaciones
+        self.assertEqual(status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.assertIn("message", response)
+        self.assertEqual(response["message"], "Something was wrong trying to get predicted data")
+        mock_log_error.assert_called_once_with("Some error occurred trying to get predicted data: Random error")
+
+
+
         
