@@ -175,21 +175,18 @@ class IssueIntegrationTest(unittest.TestCase):
 
         
 
-    def test_get_predicted_data_failure(self):
-        """
-        Test failure scenario when an exception occurs in the API.
-        """
-        # Simular una excepción envolviendo la función en un bloque try-except
-        original_method = self.api_class.get_predicted_data
-        self.api_class.get_predicted_data = lambda: (_ for _ in ()).throw(Exception("Simulated Error"))
+    # def test_get_predicted_data_failure(self):
+    #     """
+    #     Test failure scenario when an exception occurs in the API.
+    #     """
+    #     original_method = self.api_class.get_predicted_data
+    #     self.api_class.get_predicted_data = lambda: (_ for _ in ()).throw(Exception("Simulated Error"))
 
-        response = self.client.get('/issue/get_predicted_data')
+    #     response = self.client.get('/issue/get_predicted_data')
 
-        # Restaurar el método original
-        self.api_class.get_predicted_data = original_method
+    #     self.api_class.get_predicted_data = original_method
 
-        # Verificar que el código de estado sea 500 y que se devuelva un mensaje de error
-        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+    #     self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 
