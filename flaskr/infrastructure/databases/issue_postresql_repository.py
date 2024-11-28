@@ -353,7 +353,7 @@ class IssuePostgresqlRepository(IssueRepository):
                 )
                 
                 top_issues = [
-                    self._from_model(IssueModelSqlAlchemy(subject=result[0]))
+                    self._from_model(IssueModelSqlAlchemy(subject=result[0][:20]))
                     for result in results
                 ]
                 return top_issues
