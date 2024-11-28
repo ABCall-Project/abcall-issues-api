@@ -84,8 +84,11 @@ class IssuePostgresqlRepository(IssueRepository):
                 if attachment:
                     attachment_model = self._to_model_attachment(attachment)
                     session.add(attachment_model)
-                session.commit()
-                session.refresh(attachment_model)
+                    session.commit()
+                    session.refresh(attachment_model)
+                
+                issue = self._from_model(issue_model)
+                return issue
 
             except Exception as e:
                 if session:
@@ -350,7 +353,7 @@ class IssuePostgresqlRepository(IssueRepository):
                 )
                 
                 top_issues = [
-                    self._from_model(IssueModelSqlAlchemy(subject=result[0]))
+                    self._from_model(IssueModelSqlAlchemy(subject=result[0][:20]))
                     for result in results
                 ]
                 return top_issues
