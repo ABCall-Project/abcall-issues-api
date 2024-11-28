@@ -27,7 +27,7 @@ class IssueIntegrationTest(unittest.TestCase):
             'subject': fake.word(),
             'description': fake.sentence()
         }
-        radicado = str(data.id).split('-')[-1].upper()
+        radicado =  str(data['id']).split('-')[-1].upper()
         expected_message = f"Issue created successfully with ID {radicado}"
 
         response = self.client.post('/issue/post', content_type='multipart/form-data', data=data)
