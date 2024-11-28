@@ -33,7 +33,7 @@ class IssueIntegrationTest(unittest.TestCase):
         response = self.client.post('/issue/post', content_type='multipart/form-data', data=data)
 
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
-        #self.assertEqual(response.json["message"], expected_message)
+        self.assertEqual(response.json["message"], expected_message)
 
     @patch('flaskr.application.issue_service.Issue')
     def test_should_return_an_internal_server_error_in_post_process(self, IssueMock):
