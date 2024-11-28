@@ -61,7 +61,7 @@ class Issue(Resource):
             radicado = str(issue.id).split('-')[-1]
 
             log.info(f'Return Issue: {issue.id}')
-            return {"message": f"Issue created successfully with ID {radicado}"}, HTTPStatus.CREATED
+            return {"message": f"Issue creado con numero de Radicado: {radicado}"}, HTTPStatus.CREATED
 
         except Exception as ex:
             log.error(f"Error while creating issue: {ex}")
