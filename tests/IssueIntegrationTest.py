@@ -20,13 +20,15 @@ class IssueIntegrationTest(unittest.TestCase):
         
     def test_should_endpoint_create_an_issue(self):
         data = {
+            'id': fake.uuid4(),
             'file': (BytesIO(b"Testing file"), 'testfile.txt'),
             'auth_user_id': fake.uuid4(),
             'auth_user_agent_id': fake.uuid4(),
             'subject': fake.word(),
             'description': fake.sentence()
         }
-        expected_message = "Issue created successfully with ID"
+        radicado = str(data.id).split('-')[-1].upper()
+        expected_message = f"Issue created successfully with ID {radicado}"
 
         response = self.client.post('/issue/post', content_type='multipart/form-data', data=data)
 

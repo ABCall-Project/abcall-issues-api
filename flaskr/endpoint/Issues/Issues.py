@@ -51,15 +51,17 @@ class Issue(Resource):
                 file.save(file_path)
                 log.info(f"File uploaded successfully at {file_path}")
 
-            self.service.create_issue(
+            issue = self.service.create_issue(
                 auth_user_id=auth_user_id,
                 auth_user_agent_id=auth_user_agent_id,
                 subject=subject,
                 description=description,
                 file_path=file_path
             )
+            radicado = str(issue.id).split('-')[-1]
 
-            return {"message": f"Issue created successfully with ID"}, HTTPStatus.CREATED
+            log.info(f'Return Issue: {issue.id}')
+            return {"message": f"Issue created successfully with ID {radicado}"}, HTTPStatus.CREATED
 
         except Exception as ex:
             log.error(f"Error while creating issue: {ex}")
