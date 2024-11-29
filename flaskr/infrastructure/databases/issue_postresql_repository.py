@@ -1,6 +1,7 @@
 from math import ceil
 from flask import jsonify
 import json
+from sqlalchemy import func
 from sqlalchemy import create_engine,extract, func, desc
 from sqlalchemy.orm import sessionmaker
 from typing import List, Optional
@@ -136,23 +137,31 @@ class IssuePostgresqlRepository(IssueRepository):
     def get_issue_by_id(self, issue_id: str) -> Optional[dict]:
         with self.session() as session:
             try:
-                issue = (
-                    session.query(IssueModelSqlAlchemy, IssueStateSqlAlchemy.name.label("status_name"))
-                    .join(IssueStateSqlAlchemy, IssueModelSqlAlchemy.status == IssueStateSqlAlchemy.id)
-                    .filter(IssueModelSqlAlchemy.id == issue_id)
-                    .first()
-                )
+                issues = (
+                        session.query(IssueModelSqlAlchemy, IssueStateSqlAlchemy.name.label("status_name"))
+                        .join(IssueStateSqlAlchemy, IssueModelSqlAlchemy.status == IssueStateSqlAlchemy.id)
+                        .all()  # Usamos `.all()` para obtener todos los resultados
+                    )
+
+                filtered_issues = [
+                    issue for issue, status in issues
+                    if str(issue.id).split('-')[-1] == issue_id.lower()
+                ]
+                issue = filtered_issues[0] if filtered_issues else None
 
                 if not issue:
                     return issue
 
+                state = session.query(IssueStateSqlAlchemy).filter(IssueStateSqlAlchemy.id == issue.status).first()
+                status_name = state.name if state else None
+
                 issue_data = {
-                    "created_at": issue.IssueModelSqlAlchemy.created_at.isoformat() if issue.IssueModelSqlAlchemy.created_at else None,
-                    "id": str(issue.IssueModelSqlAlchemy.id),  # Convertir UUID a cadena
-                    "subject": issue.IssueModelSqlAlchemy.subject,
-                    "description": issue.IssueModelSqlAlchemy.description,
-                    "status": issue.status_name,
-                    "closed_at": issue.IssueModelSqlAlchemy.closed_at.isoformat() if issue.IssueModelSqlAlchemy.closed_at else None
+                    "created_at": issue.created_at.isoformat() if issue.created_at else None,
+                    "id": str(issue.id),
+                    "subject": issue.subject,
+                    "description": issue.description,
+                    "status": status_name,
+                    "closed_at": issue.closed_at.isoformat() if issue.closed_at else None
                 }
                 return issue_data
 
