@@ -13,3 +13,4 @@ kombu==5.4.2
 coverage==5.3
 Faker
 Flask-Cors==5.0.0
+newrelic
