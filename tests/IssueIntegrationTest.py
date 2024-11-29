@@ -124,7 +124,8 @@ class IssueIntegrationTest(unittest.TestCase):
             "closed_at": str(issue.closed_at),
             "channel_plan_id": str(issue.channel_plan_id)
         }
-        response = self.client.get(f'/issue/get_issue_by_id?issue_id={issue.id}')
+        radicado = str(issue.id).split('-')[-1] 
+        response = self.client.get(f'/issue/get_issue_by_id?issue_id={radicado}')
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json['id'], issue_dict['id'])
